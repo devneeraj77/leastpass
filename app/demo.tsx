@@ -1,31 +1,33 @@
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { useToast } from '@/hooks/use-toast';
-
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
 
 const PasswordGenerator = () => {
   const [passwordLength, setPasswordLength] = useState<number>(12);
   const [includeUppercase, setIncludeUppercase] = useState<boolean>(true);
   const [includeNumbers, setIncludeNumbers] = useState<boolean>(true);
   const [includeSymbols, setIncludeSymbols] = useState<boolean>(true);
-  const [generatedPassword, setGeneratedPassword] = useState<string>('');
-  const [passwordStrength, setPasswordStrength] = useState<'Very Weak' | 'Weak' | 'Medium' | 'Strong'>('Very Weak');
-  
+  const [generatedPassword, setGeneratedPassword] = useState<string>("");
+  const [passwordStrength, setPasswordStrength] = useState<
+    "Very Weak" | "Weak" | "Medium" | "Strong"
+  >("Very Weak");
+
   // shadcn toast hook
   const { toast } = useToast();
 
   const generatePassword = () => {
-    const lowercaseChars = 'abcdefghijklmnopqrstuvwxyz';
-    const uppercaseChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    const numberChars = '0123456789';
-    const symbolChars = '!@#$%^&*()_+-=[]{}|;:,.<>?';
+    const lowercaseChars = "abcdefghijklmnopqrstuvwxyz";
+    const uppercaseChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const numberChars = "0123456789";
+    const symbolChars = "!@#$%^&*()_+-=[]{}|;:,.<>?";
 
     let characterPool = lowercaseChars;
     if (includeUppercase) characterPool += uppercaseChars;
     if (includeNumbers) characterPool += numberChars;
     if (includeSymbols) characterPool += symbolChars;
 
-    let password = '';
+    let password = "";
     for (let i = 0; i < passwordLength; i++) {
       const randomIndex = Math.floor(Math.random() * characterPool.length);
       password += characterPool[randomIndex];
@@ -44,32 +46,33 @@ const PasswordGenerator = () => {
     if (/[^A-Za-z0-9]/.test(password)) strengthPoints++;
 
     if (strengthPoints === 0) {
-      setPasswordStrength('Very Weak');
+      setPasswordStrength("Very Weak");
     } else if (strengthPoints === 1) {
-      setPasswordStrength('Weak');
+      setPasswordStrength("Weak");
     } else if (strengthPoints === 2 || strengthPoints === 3) {
-      setPasswordStrength('Medium');
+      setPasswordStrength("Medium");
     } else {
-      setPasswordStrength('Strong');
+      setPasswordStrength("Strong");
     }
   };
 
   // Copy password to clipboard and show toast
   const copyToClipboard = () => {
     if (generatedPassword) {
-      navigator.clipboard.writeText(generatedPassword)
+      navigator.clipboard
+        .writeText(generatedPassword)
         .then(() => {
           toast({
-            title: 'Success',
-            description: 'Your password has been copied to the clipboard.',
-            variant: 'success',
+            title: "Success",
+            description: "Your password has been copied to the clipboard.",
+            variant: "success",
           });
         })
         .catch(() => {
           toast({
-            title: 'Error',
-            description: 'Failed to copy password.',
-            variant: 'destructive',
+            title: "Error",
+            description: "Failed to copy password.",
+            variant: "destructive",
           });
         });
     }
@@ -83,16 +86,16 @@ const PasswordGenerator = () => {
   // Dynamically calculate the width and color of the strength bar
   const getStrengthBarProperties = () => {
     switch (passwordStrength) {
-      case 'Very Weak':
-        return { width: '25%', backgroundColor: '#f87171' }; // Red for Very Weak
-      case 'Weak':
-        return { width: '50%', backgroundColor: '#facc15' }; // Yellow for Weak
-      case 'Medium':
-        return { width: '75%', backgroundColor: '#60a5fa' }; // Blue for Medium
-      case 'Strong':
-        return { width: '100%', backgroundColor: '#34d399' }; // Green for Strong
+      case "Very Weak":
+        return { width: "25%", backgroundColor: "#f87171" }; // Red for Very Weak
+      case "Weak":
+        return { width: "50%", backgroundColor: "#facc15" }; // Yellow for Weak
+      case "Medium":
+        return { width: "75%", backgroundColor: "#60a5fa" }; // Blue for Medium
+      case "Strong":
+        return { width: "100%", backgroundColor: "#34d399" }; // Green for Strong
       default:
-        return { width: '25%', backgroundColor: '#f87171' }; // Default to Very Weak
+        return { width: "25%", backgroundColor: "#f87171" }; // Default to Very Weak
     }
   };
 
@@ -151,7 +154,9 @@ const PasswordGenerator = () => {
         {generatedPassword && (
           <div className="mt-4 p-4 bg-gray-100 rounded">
             <p className="text-lg font-semibold">Generated Password:</p>
-            <p className="text-sm text-gray-700 break-all">{generatedPassword}</p>
+            <p className="text-sm text-gray-700 break-all">
+              {generatedPassword}
+            </p>
 
             {/* Copy button */}
             <Button className="mt-2" onClick={copyToClipboard}>
@@ -163,11 +168,13 @@ const PasswordGenerator = () => {
         {/* Password Strength Indicator */}
         {generatedPassword && (
           <div className="mt-4">
-            <p className="text-sm font-semibold">Password Strength: {passwordStrength}</p>
+            <p className="text-sm font-semibold">
+              Password Strength: {passwordStrength}
+            </p>
             <div className="w-full h-2 rounded bg-gray-300 mt-2">
               <motion.div
                 className="h-full rounded"
-                initial={{ width: '0%' }}
+                initial={{ width: "0%" }}
                 animate={getStrengthBarProperties()}
                 transition={{ duration: 0.5 }}
               />
