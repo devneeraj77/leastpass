@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "./ui/button";
-import { IconCopy, IconReload } from "@tabler/icons-react";
+import { IconCopy, IconRefresh, IconReload } from "@tabler/icons-react";
 import Box from "@mui/material/Box";
 import Slider from "@mui/material/Slider";
 import { Checkbox, FormControlLabel } from "@mui/material";
@@ -134,26 +134,32 @@ const PasswordGenerator = () => {
   return (
     <div className="flex flex-col items-center text-tp justify-center gap-4 bg-Backg md:w-[44vw]  border-accent">
       <div className="h-32 bg-backgMuted w-full flex flex-col justify-between rounded-t-xl rounded-b-sm border-accent">
-        <div className="mt-4 flex gap-2 px-4">
-          <div className="basis-10/12 border-accent rounded-md overflow-hidden flex items-center border">
+        <div className="mt-4 flex  gap-2 px-4  ">
+          <div className="basis-10/12 border-br py-2  m-auto rounded-md flex items-center ">
             {generatedPassword && (
-              <p className="text-sm md:text-xl px-4 w-full overflow-y-hidden break-all">
+              <p className="text-sm md:text-xl  px-4 w-full h-12  break-all">
                 {generatedPassword}
               </p>
             )}
           </div>
-          <div className="basis-1/6 border-accent rounded-md border gap-1 flex">
-            <Button className="text-tp" onClick={copyToClipboard}>
+          <div className="basis-1/6 border-br rounded-md gap-1 flex">
+            <Button
+              className="text-tp bg-secondary font-bold transition duration-200 hover:bg-transpMuted hover:text-tMuted active:text-tAccent border-2 border-transparent active:bg-transLight shadow-none"
+              onClick={copyToClipboard}
+            >
               <IconCopy />
             </Button>
-            <Button onClick={generatePassword} className="w-full ">
+            <Button
+              onClick={generatePassword}
+              className="text-tp bg-secondary  font-bold transition duration-200 hover:bg-transpMuted hover:text-tMuted active:text-tAccent border-2 border-transparent active:bg-transLight shadow-none"
+            >
               <motion.div
-                className="text-tp"
+                className="text-tp text-tp font-bold  hover:bg-transpMuted hover:text-tMuted active:text-tAccent border-2 border-transparent"
                 onClick={handleClick}
                 animate={{ rotate: rotation }}
                 transition={{ duration: 0.5, ease: "easeInOut" }}
               >
-                <IconReload />
+                <IconRefresh />
               </motion.div>
             </Button>
           </div>
@@ -255,16 +261,15 @@ const PasswordGenerator = () => {
                 }}
               />
             }
-            label="Include Uppercase Letters"
+            label="Include Symbols Letters"
             className="flex items-center"
           />
         </Box>
-
         <button
           onClick={generatePassword}
-          className="w-full bg-blue-500  py-2 rounded hover:bg-blue-600 transition"
+          className="px-8 py-2 mt-4 w-full rounded-md bg-secondary text-tp font-bold transition duration-200 hover:bg-transpMuted hover:text-tMuted active:text-tAccent border-2 border-transparent active:bg-transLight   hover:border-brh"
         >
-          Generate Password
+          Invert it
         </button>
       </div>
     </div>

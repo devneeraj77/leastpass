@@ -18,6 +18,7 @@ const config: Config = {
         tAccent: "var(--color-text-accent)",
         tMuted: "var(--color-text-muted)",
         br: "var(--color-border)",
+        brh: "var(--color-border-hover)",
         backg: "var(--color-background)",
         backgMuted: "var(--color-background-muted)",
         transpLight: "var(--color-transparent-light)",

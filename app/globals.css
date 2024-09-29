@@ -46,11 +46,11 @@
   ); /* Transparent primary dark */
 
   /* Secondary Color - UI elements, buttons, and cards (30%) */
-  --color-secondary-dark: #4a5859; /* Dark Grey */
+  --color-secondary-dark: #080f0f; /* Dark Grey */
   --color-secondary-dark-transparent: rgba(
-    74,
+    786ba90,
     88,
-    89,
+    ,
     0.8
   ); /* Transparent secondary dark */
 
