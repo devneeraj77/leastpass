@@ -57,10 +57,11 @@ const components: { title: string; href: string; description: string }[] = [
 export function Header() {
   return (
     <header className="flex text-black text-tp h-18 m-2 justify-between p-2 items-center">
-      <Link href={"/"} className="">
+      <Link href={"/"} className="hidden md:block py-3">
         leastpass
       </Link>
-      <NavigationMenu>
+
+      {/* <NavigationMenu>
         <NavigationMenuList>
           <NavigationMenuItem>
             <NavigationMenuTrigger>Getting started</NavigationMenuTrigger>
@@ -120,12 +121,9 @@ export function Header() {
             </Link>
           </NavigationMenuItem>
         </NavigationMenuList>
-      </NavigationMenu>
+      </NavigationMenu> */}
       <div className="flex gap-2">
-        <Link href={"/"} className="">
-          sign
-        </Link>
-        <Link href={"/"} className=" ">
+        <Link href={"/"} className="hidden md:block py-3">
           contact
         </Link>
       </div>

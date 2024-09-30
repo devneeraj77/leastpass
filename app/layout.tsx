@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 // import localFont from "next/font/local";
 import "./globals.css";
 import Header from "@/components/Header";
-import {Inter} from "next/font/google"
+import { Inter } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
+import { NavbarDemo } from "@/components/Nav";
 
 const inter = Inter({
   subsets: ["latin"],
-  weight: "400"
-})
+  weight: "400",
+});
 // const geistSans = localFont({
 //   src: "./fonts/GeistVF.woff",
 //   variable: "--font-geist-sans",
@@ -32,12 +33,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${inter.className} text-ts bg-primary antialiased`}
-      >
-        <Header/>
+      <body className={`${inter.className} text-ts bg-primary antialiased`}>
+        <Header />
+        <NavbarDemo />
         {children}
-        <Toaster/>
+        <Toaster />
       </body>
     </html>
   );

@@ -132,16 +132,17 @@ const PasswordGenerator = () => {
   };
 
   return (
-    <div className="flex flex-col items-center text-tp justify-center gap-4 bg-Backg md:w-[44vw]  border-accent">
+    <div className="flex flex-col items-center text-tp justify-center gap-4 bg-Backg w-80 md:w-[44vw]  border-accent">
       <div className="h-32 bg-backgMuted w-full flex flex-col justify-between rounded-t-xl rounded-b-sm border-accent">
         <div className="mt-4 flex  gap-2 px-4  ">
-          <div className="basis-10/12 border-br py-2  m-auto rounded-md flex items-center ">
+          <div className="basis-10/12 border-br py-2 m-auto rounded-md flex items-center overflow-x-hidden">
             {generatedPassword && (
-              <p className="text-sm md:text-xl  px-4 w-full h-12  break-all">
+              <p className="text-sm text-tAccent md:text-xl px-4  h-12 truncate whitespace-nowrap">
                 {generatedPassword}
               </p>
             )}
           </div>
+
           <div className="basis-1/6 border-br rounded-md gap-1 flex">
             <Button
               className="text-tp bg-secondary font-bold transition duration-200 hover:bg-transpMuted hover:text-tMuted active:text-tAccent border-2 border-transparent active:bg-transLight shadow-none"
@@ -188,7 +189,7 @@ const PasswordGenerator = () => {
             value={passwordLength}
             min={6}
             max={50}
-            defaultValue={12}
+            defaultValue={50}
             onChange={handleChange}
             aria-labelledby="password-length-slider"
             valueLabelDisplay="auto" // This will show the current value of the slider
