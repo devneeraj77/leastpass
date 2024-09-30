@@ -8,10 +8,10 @@ export function NavbarDemo() {
   return (
     <div className="relative w-full text-tAccent flex-col  flex h-28 items-center justify-end">
       <Navbar className=" top-4" />
-      <p className="text-tAccent md:text-xl">
-        Create Your unique password with leastpass
+      <p className="text-tAccent text-center py-2">
+        Create your unique password with leastpass!
       </p>
-      <div className="flex text-tMuted gap-2">
+      <div className="flex text-tp gap-2">
         <Link href={"/"} className="flex active:tAccent hover:tAccent">
           lp
           <svg
