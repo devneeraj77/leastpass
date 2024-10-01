@@ -57,8 +57,11 @@ const components: { title: string; href: string; description: string }[] = [
 export function Header() {
   return (
     <header className="flex text-black text-tp h-18 m-2 justify-between p-2 items-center">
-      <Link href={"/"} className="hidden md:block py-3">
-        leastpass
+      <Link
+        href={"/"}
+        className="text-sm md:text-base bg-transpLight w-2 h-2 p-2 rounded-full my-1"
+      >
+        lp.
       </Link>
 
       {/* <NavigationMenu>

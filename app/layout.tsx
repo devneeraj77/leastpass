@@ -2,11 +2,17 @@ import type { Metadata } from "next";
 // import localFont from "next/font/local";
 import "./globals.css";
 import Header from "@/components/Header";
-import { Inter } from "next/font/google";
+import { Inter, Kristi } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
 import { NavbarDemo } from "@/components/Nav";
+import Footer from "@/components/Footer";
 
 const inter = Inter({
+  subsets: ["latin"],
+  weight: "400",
+});
+
+const kristi = Kristi({
   subsets: ["latin"],
   weight: "400",
 });
@@ -38,6 +44,7 @@ export default function RootLayout({
         <NavbarDemo />
         {children}
         <Toaster />
+        <Footer />
       </body>
     </html>
   );

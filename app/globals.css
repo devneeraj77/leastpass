@@ -21,7 +21,7 @@
   --color-text-primary: #080f0f; /* Charcoal text */
   --color-text-secondary: #6b9774; /* Dark Grey text */
   --color-text-accent: #0c1313; /* Accent text */
-  --color-text-muted: hsla(180, 23%, 6%, 0.2); /* Muted text */
+  --color-text-muted: hsla(180, 23%, 6%, 0.8); /* Muted text */
 
   /* Border Colors */
   --color-border: hsla(180, 30%, 5%, 0.4);
