@@ -1,6 +1,4 @@
-import Div from "@/components/div";
 import PasswordGenerator from "@/components/passwordGen";
-import Image from "next/image";
 
 export default function Home() {
   return (

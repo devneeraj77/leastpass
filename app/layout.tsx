@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 // import localFont from "next/font/local";
 import "./globals.css";
 import Header from "@/components/Header";
-import { Inter, Kristi } from "next/font/google";
+import { Inter} from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
 import { NavbarDemo } from "@/components/Nav";
 import Footer from "@/components/Footer";
@@ -12,10 +12,7 @@ const inter = Inter({
   weight: "400",
 });
 
-const kristi = Kristi({
-  subsets: ["latin"],
-  weight: "400",
-});
+
 // const geistSans = localFont({
 //   src: "./fonts/GeistVF.woff",
 //   variable: "--font-geist-sans",

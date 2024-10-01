@@ -1,9 +1,9 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "./ui/button";
-import { IconCopy, IconRefresh, IconReload } from "@tabler/icons-react";
+import { IconCopy, IconRefresh } from "@tabler/icons-react";
 import Box from "@mui/material/Box";
 import Slider from "@mui/material/Slider";
 import { Checkbox, FormControlLabel } from "@mui/material";
@@ -27,11 +27,13 @@ const PasswordGenerator = () => {
   ) => {
     setIncludeUppercase(event.target.checked);
   };
+
   const handleChangeCheckboxN = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     setIncludeNumbers(event.target.checked);
   };
+
   const handleChangeCheckboxS = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -40,7 +42,8 @@ const PasswordGenerator = () => {
 
   const { toast } = useToast();
 
-  const generatePassword = () => {
+  // Memoize generatePassword with useCallback
+  const generatePassword = useCallback(() => {
     const lowercaseChars = "abcdefghijklmnopqrstuvwxyz";
     const uppercaseChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     const numberChars = "0123456789";
@@ -59,7 +62,7 @@ const PasswordGenerator = () => {
 
     setGeneratedPassword(password);
     evaluatePasswordStrength(password);
-  };
+  }, [includeUppercase, includeNumbers, includeSymbols, passwordLength]);
 
   const evaluatePasswordStrength = (password: string) => {
     let strengthPoints = 0;
@@ -80,8 +83,6 @@ const PasswordGenerator = () => {
     }
   };
 
-  // Corrected Toast Notification for Copy Success
-
   const copyToClipboard = () => {
     if (generatedPassword) {
       navigator.clipboard
@@ -90,14 +91,14 @@ const PasswordGenerator = () => {
           toast({
             title: "Success",
             description: "Your password has been copied to the clipboard.",
-            variant: "default", // Changed from 'success' to 'default'
+            variant: "default",
           });
         })
         .catch(() => {
           toast({
             title: "Error",
             description: "Failed to copy password.",
-            variant: "destructive", // 'destructive' variant is allowed for errors
+            variant: "destructive",
           });
         });
     }
@@ -106,16 +107,14 @@ const PasswordGenerator = () => {
   const [rotation, setRotation] = useState(0);
 
   const handleClick = () => {
-    // Increment rotation by 360 on each click
     setRotation((prev) => prev + 360);
   };
 
   // Generate password on page load
   useEffect(() => {
     generatePassword();
-  }, []);
+  }, [generatePassword]);
 
-  // Dynamically calculate the width and color of the strength bar
   const getStrengthBarProperties = () => {
     switch (passwordStrength) {
       case "Very Weak":
@@ -132,12 +131,12 @@ const PasswordGenerator = () => {
   };
 
   return (
-    <div className="flex flex-col items-center text-tp justify-center gap-4 bg-Backg w-80 md:w-[44vw]  border-accent">
+    <div className="flex flex-col items-center text-tp justify-center gap-4 bg-Backg w-80 md:w-[44vw] border-accent">
       <div className="h-32 bg-backgMuted w-full flex flex-col justify-between rounded-t-xl rounded-b-sm border-accent">
-        <div className="mt-4 flex  gap-2 px-4  ">
+        <div className="mt-4 flex gap-2 px-4">
           <div className="basis-10/12 border-br py-2 m-auto rounded-md flex items-center overflow-x-hidden">
             {generatedPassword && (
-              <p className="text-sm text-tAccent md:text-xl px-4  h-12 truncate whitespace-nowrap">
+              <p className="text-sm text-tAccent md:text-xl px-4 h-12 truncate whitespace-nowrap">
                 {generatedPassword}
               </p>
             )}
@@ -152,10 +151,10 @@ const PasswordGenerator = () => {
             </Button>
             <Button
               onClick={generatePassword}
-              className="text-tp bg-secondary  font-bold transition duration-200 hover:bg-transpMuted hover:text-tMuted active:text-tAccent border-2 border-transparent active:bg-transLight shadow-none"
+              className="text-tp bg-secondary font-bold transition duration-200 hover:bg-transpMuted hover:text-tMuted active:text-tAccent border-2 border-transparent active:bg-transLight shadow-none"
             >
               <motion.div
-                className="text-tp text-tp font-bold  hover:bg-transpMuted hover:text-tMuted active:text-tAccent border-2 border-transparent"
+                className="text-tp font-bold hover:bg-transpMuted hover:text-tMuted active:text-tAccent border-2 border-transparent"
                 onClick={handleClick}
                 animate={{ rotate: rotation }}
                 transition={{ duration: 0.5, ease: "easeInOut" }}
@@ -166,23 +165,22 @@ const PasswordGenerator = () => {
           </div>
         </div>
 
-        {/* Password Strength Indicator */}
         {generatedPassword && (
           <div className="mt-4">
             <p className="text-sm font-semibold px-4">{passwordStrength}</p>
-            <div className="w-full h-1 rounded  mt-2">
+            <div className="w-full h-1 rounded mt-2">
               <motion.div
                 className="h-full rounded"
-                initial={{ width: "0%" }} // Starting width
-                animate={getStrengthBarProperties()} // Animate width and color dynamically
-                transition={{ duration: 0.5 }} // Smooth transition duration
+                initial={{ width: "0%" }}
+                animate={getStrengthBarProperties()}
+                transition={{ duration: 0.5 }}
               />
             </div>
           </div>
         )}
       </div>
 
-      <div className="bg-backgMuted p-8 rounded w-full ">
+      <div className="bg-backgMuted p-8 rounded w-full">
         <label className="block mb-2">Password Length: {passwordLength}</label>
         <Box>
           <Slider
@@ -192,18 +190,18 @@ const PasswordGenerator = () => {
             defaultValue={50}
             onChange={handleChange}
             aria-labelledby="password-length-slider"
-            valueLabelDisplay="auto" // This will show the current value of the slider
+            valueLabelDisplay="auto"
             sx={{
-              color: "rgb(134, 186, 144)", // Tailwind color equivalent to custom color (from 86ba90)
+              color: "rgb(134, 186, 144)",
               "& .MuiSlider-thumb": {
-                borderRadius: "9999px", // Apply tailwind-like `rounded-full` to the thumb
-                backgroundColor: "rgb(8, 15, 15)", // Tailwind black shade from the custom palette (080f0f)
+                borderRadius: "9999px",
+                backgroundColor: "rgb(8, 15, 15)",
               },
               "& .MuiSlider-track": {
-                backgroundColor: "rgb(255, 252, 255)", // Custom light background (fffcff)
+                backgroundColor: "rgb(255, 252, 255)",
               },
               "& .MuiSlider-rail": {
-                backgroundColor: "rgba(134, 186, 144, 0.5)", // Lightened rail version of the track color
+                backgroundColor: "rgba(134, 186, 144, 0.5)",
               },
             }}
           />
@@ -215,11 +213,11 @@ const PasswordGenerator = () => {
               <Checkbox
                 checked={includeUppercase}
                 onChange={handleChangeCheckboxU}
-                color="default" // You can change the color here
+                color="default"
                 sx={{
-                  color: "rgb(8, 15, 15)", // Tailwind's 'dark-color' when unchecked
+                  color: "rgb(8, 15, 15)",
                   "&.Mui-checked": {
-                    color: "rgb(134, 186, 144)", // Tailwind's 'primary-color' when checked
+                    color: "rgb(134, 186, 144)",
                   },
                 }}
               />
@@ -234,16 +232,16 @@ const PasswordGenerator = () => {
               <Checkbox
                 checked={includeNumbers}
                 onChange={handleChangeCheckboxN}
-                color="default" // You can change the color here
+                color="default"
                 sx={{
-                  color: "rgb(8, 15, 15)", // Tailwind's 'dark-color' when unchecked
+                  color: "rgb(8, 15, 15)",
                   "&.Mui-checked": {
-                    color: "rgb(134, 186, 144)", // Tailwind's 'primary-color' when checked
+                    color: "rgb(134, 186, 144)",
                   },
                 }}
               />
             }
-            label="Include Number Letters"
+            label="Include Numbers"
             className="flex items-center"
           />
         </Box>
@@ -253,16 +251,16 @@ const PasswordGenerator = () => {
               <Checkbox
                 checked={includeSymbols}
                 onChange={handleChangeCheckboxS}
-                color="default" // You can change the color here
+                color="default"
                 sx={{
-                  color: "rgb(8, 15, 15)", // Tailwind's 'dark-color' when unchecked
+                  color: "rgb(8, 15, 15)",
                   "&.Mui-checked": {
-                    color: "rgb(134, 186, 144)", // Tailwind's 'primary-color' when checked
+                    color: "rgb(134, 186, 144)",
                   },
                 }}
               />
             }
-            label="Include Symbols Letters"
+            label="Include Symbols"
             className="flex items-center"
           />
         </Box>
