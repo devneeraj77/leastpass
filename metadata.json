@@ -1,0 +1,5 @@
+{
+  "name": "LeastPass - Secure Password Generator",
+  "description": "Generate unique, customizable, and secure passwords with ease using LeastPass.",
+  "capabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
