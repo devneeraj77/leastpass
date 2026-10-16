@@ -8,8 +8,7 @@ export default function DeveloperSection() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [copiedEmail, setCopiedEmail] = useState(false);
 
-  const kofiUrl = "https://ko-fi.com/neerajrekwar2001";
-  const githubUrl = "https://github.com/devneeraj77";
+  const githubUrl = "https://github.com/neerajrekwar";
   const portfolioUrl = "https://neerajrekwar.github.io/";
   const emailAddress = "dev.neerajrekwar@gmail.com";
 
@@ -87,7 +86,7 @@ export default function DeveloperSection() {
               title="GitHub Profile"
             >
               <Github className="w-4 h-4" />
-              <span>devneeraj77</span>
+              <span>neerajrekwar</span>
             </a>
 
             <a
@@ -173,15 +172,7 @@ export default function DeveloperSection() {
               <ArrowUpRight className="w-4 h-4" />
             </button>
 
-            <a
-              href={kofiUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full sm:w-auto py-3 px-5 text-xs font-bold text-[#080f0f] clay-btn-subtle rounded-2xl flex items-center justify-center gap-2"
-            >
-              <span>Visit ko-fi.com/neerajrekwar2001</span>
-              <ArrowUpRight className="w-3.5 h-3.5 opacity-60" />
-            </a>
+
           </div>
         </div>
       </div>

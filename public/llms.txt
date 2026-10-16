@@ -1,0 +1,56 @@
+# LeastPass
+
+> Tactile, zero-telemetry, client-side cryptographic password generator and information entropy security suite developed by Neeraj Rekwar.
+
+## Overview
+
+LeastPass (https://leastpass.vercel.app or https://ais-pre-oadcti4whd6ltse56q3rhf-291116410510.asia-southeast1.run.app) is an open-source, privacy-first web application designed to generate cryptographically uncrackable passwords, memorable multi-word passphrases, and numeric PINs directly inside browser memory without sending data to any server.
+
+Built with a distinctive modern Claymorphic UI system, it features real-time Shannon information entropy telemetry, brute-force crack-time benchmarking, and an interactive cryptography lab.
+
+## Key Facts
+
+- **Developer**: Neeraj Rekwar (Full-Stack Web & Interface Developer)
+- **GitHub**: https://github.com/devneeraj77
+- **Creator Support / Buy Me a Coffee**: https://ko-fi.com/neerajrekwar2001
+- **Email**: dev.neerajrekwar@gmail.com
+- **License**: MIT Open Source
+- **Tech Stack**: Next.js 14 (App Router), React 18, TypeScript, Tailwind CSS, Web Cryptography API (`crypto.getRandomValues`)
+- **Privacy Model**: 100% Client-side. Zero server API calls, zero analytics cookies, zero database persistence, zero telemetry.
+
+## Core Capabilities
+
+1. **Cryptographic Random String Generator**:
+   - Hardware-backed CSPRNG using `window.crypto.getRandomValues()` instead of pseudo-random `Math.random()`.
+   - Length configuration from 6 to 64 characters.
+   - Character sets: Uppercase (A-Z), Lowercase (a-z), Digits (0-9), Special Symbols (!@#$%^&*).
+   - Ambiguous character filtering to remove confusing glyphs (0, O, 1, l, I, |).
+
+2. **Memorable Diceware Passphrase Generator**:
+   - Multi-word diceware-inspired passphrases using curated non-confusable word pools.
+   - Custom separators (hyphens, dots, underscores, spaces).
+   - Title-case capitalization and random numeric injection for high-entropy compliance.
+
+3. **Secure Numeric PIN Generator**:
+   - 4- to 12-digit numeric PINs for banking, two-factor auth, and hardware security keys.
+
+4. **Information Entropy & GPU Crack-Time Benchmarking**:
+   - Formula: E = L * log2(N) where L is length and N is pool cardinality.
+   - Crack time estimates against distributed GPU clusters (100 billion guesses/second).
+
+5. **Local Ephemeral Session History**:
+   - In-memory recent password history (up to 5 items) during the active browser session with instant copy and purge actions.
+
+## Main Pages & Resources
+
+- `/`: Main interactive generator workstation, entropy meter, security lab, and developer spotlight.
+- `/about`: The philosophy of LeastPass, developer biography for Neeraj Rekwar, zero-telemetry architecture, and technical principles.
+- `/contact`: Direct contact form with client-side validation, developer social links, and email inquiry channels.
+- `/blog`: Password security articles, mathematical entropy breakdowns, and diceware guides (configured for headless CMS / Sanity integration).
+- `/sitemap.xml`: XML sitemap indexing all application pages and articles.
+- `/robots.txt`: Search crawler directives allowing full indexing.
+
+## Support & Sponsorship
+
+LeastPass is 100% free, open-source, and ad-free. You can support the ongoing development and open-source infrastructure of creator Neeraj Rekwar at:
+https://ko-fi.com/neerajrekwar2001

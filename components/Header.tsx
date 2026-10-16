@@ -11,7 +11,7 @@ export function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-[#fffcff]/85 border-b border-[#86ba90]/25 transition-colors">
+      <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-[#fffcff]/90 border-b border-[#86ba90]/25 transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between gap-8 py-3">
           {/* Zone 1: Brand Wordmark */}
           <Link
@@ -34,22 +34,28 @@ export function Header() {
           {/* Zone 2: Navigation Links */}
           <nav className="hidden md:flex items-center gap-7 text-sm font-semibold text-[#3b5240]">
             <Link
-              href="#generator"
+              href="/#generator"
               className="hover:text-[#080f0f] transition-colors whitespace-nowrap shrink-0"
             >
               Generator
             </Link>
             <Link
-              href="#security-lab"
+              href="/about"
               className="hover:text-[#080f0f] transition-colors whitespace-nowrap shrink-0"
             >
-              Cryptography Lab
+              About
             </Link>
             <Link
-              href="#developer"
+              href="/blog"
               className="hover:text-[#080f0f] transition-colors whitespace-nowrap shrink-0"
             >
-              Developer (Neeraj)
+              Blog
+            </Link>
+            <Link
+              href="/contact"
+              className="hover:text-[#080f0f] transition-colors whitespace-nowrap shrink-0"
+            >
+              Contact
             </Link>
             <button
               onClick={() => setIsCoffeeOpen(true)}
@@ -84,25 +90,32 @@ export function Header() {
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-[#86ba90]/25 bg-[#f6faf7] px-6 py-4 space-y-3">
             <Link
-              href="#generator"
+              href="/#generator"
               onClick={() => setMobileMenuOpen(false)}
               className="block text-sm font-semibold text-[#080f0f] py-1"
             >
               Generator
             </Link>
             <Link
-              href="#security-lab"
+              href="/about"
               onClick={() => setMobileMenuOpen(false)}
               className="block text-sm font-semibold text-[#080f0f] py-1"
             >
-              Cryptography Lab
+              About
             </Link>
             <Link
-              href="#developer"
+              href="/blog"
               onClick={() => setMobileMenuOpen(false)}
               className="block text-sm font-semibold text-[#080f0f] py-1"
             >
-              Developer (Neeraj Rekwar)
+              Blog & Guides
+            </Link>
+            <Link
+              href="/contact"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block text-sm font-semibold text-[#080f0f] py-1"
+            >
+              Contact
             </Link>
             <button
               onClick={() => {
