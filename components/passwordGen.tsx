@@ -19,8 +19,11 @@ import {
   QrCode,
   X,
   Smartphone,
+  Sliders,
+  Download,
+  Image as ImageIcon,
 } from "lucide-react";
-import { QRCodeSVG } from "qrcode.react";
+import { QRCodeCanvas } from "qrcode.react";
 import { useToast } from "@/hooks/use-toast";
 
 // Word pool for memorable passphrases
@@ -34,7 +37,7 @@ const PASSPHRASE_WORDS = [
   "aurora", "bamboo", "cascade", "clover", "delta", "ember", "fern", "glacier"
 ];
 
-type GeneratorMode = "random" | "passphrase" | "pin";
+type GeneratorMode = "random" | "passphrase" | "pin" | "pattern";
 
 interface HistoryItem {
   id: string;
@@ -65,6 +68,9 @@ export default function PasswordGenerator() {
 
   // PIN mode options
   const [pinLength, setPinLength] = useState<number>(6);
+
+  // Custom Pattern mode options
+  const [customPattern, setCustomPattern] = useState<string>("AAAA-NNNN-CCCC");
 
   // Generated state
   const [generatedPassword, setGeneratedPassword] = useState<string>("");
@@ -231,6 +237,46 @@ export default function PasswordGenerator() {
         for (let i = 0; i < pinLength; i++) {
           result += digits[getSecureRandomInt(digits.length)];
         }
+      } else if (mode === "pattern") {
+        let uppercaseChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        let lowercaseChars = "abcdefghijklmnopqrstuvwxyz";
+        let numberChars = "0123456789";
+        let symbolChars = "!@#$%^&*()_+-=";
+        let alphaNumChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        let allChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+
+        if (excludeAmbiguous) {
+          uppercaseChars = uppercaseChars.replace(/[O|I]/g, "");
+          lowercaseChars = lowercaseChars.replace(/[l]/g, "");
+          numberChars = numberChars.replace(/[0|1]/g, "");
+          symbolChars = symbolChars.replace(/[|]/g, "");
+          alphaNumChars = alphaNumChars.replace(/[OIl01]/g, "");
+          allChars = allChars.replace(/[OIl01|]/g, "");
+        }
+
+        const patternToUse = customPattern || "AAAA-NNNN-CCCC";
+        let patternResult = "";
+
+        for (let i = 0; i < patternToUse.length; i++) {
+          const char = patternToUse[i];
+          if (char === "A" || char === "U") {
+            patternResult += uppercaseChars[getSecureRandomInt(uppercaseChars.length)];
+          } else if (char === "a" || char === "L") {
+            patternResult += lowercaseChars[getSecureRandomInt(lowercaseChars.length)];
+          } else if (char === "N" || char === "9" || char === "D") {
+            patternResult += numberChars[getSecureRandomInt(numberChars.length)];
+          } else if (char === "C" || char === "X") {
+            patternResult += alphaNumChars[getSecureRandomInt(alphaNumChars.length)];
+          } else if (char === "!" || char === "S") {
+            patternResult += symbolChars[getSecureRandomInt(symbolChars.length)];
+          } else if (char === "*" || char === "?") {
+            patternResult += allChars[getSecureRandomInt(allChars.length)];
+          } else {
+            // Literal separator character
+            patternResult += char;
+          }
+        }
+        result = patternResult;
       }
 
       setGeneratedPassword(result);
@@ -269,6 +315,7 @@ export default function PasswordGenerator() {
       capitalizeWords,
       includeNumberInPassphrase,
       pinLength,
+      customPattern,
       calculateEntropy,
     ]
   );
@@ -292,6 +339,7 @@ export default function PasswordGenerator() {
     capitalizeWords,
     includeNumberInPassphrase,
     pinLength,
+    customPattern,
     generatePassword,
   ]);
 
@@ -340,6 +388,127 @@ export default function PasswordGenerator() {
     document.body.removeChild(textArea);
   };
 
+  // Export password to plain-text .txt file for offline storage
+  const exportToFile = () => {
+    if (!generatedPassword) return;
+
+    const modeLabels: Record<GeneratorMode, string> = {
+      random: "Random Cryptographic String",
+      passphrase: "Memorable Multi-Word Passphrase",
+      pin: "Numeric PIN",
+      pattern: `Custom Pattern (${customPattern})`,
+    };
+
+    const now = new Date();
+    const timestamp = now.toLocaleString();
+    const fileContent = [
+      "============================================================",
+      "LEASTPASS - CRYPTOGRAPHIC OFFLINE CREDENTIAL EXPORT",
+      "============================================================",
+      `Password           : ${generatedPassword}`,
+      `Generation Mode    : ${modeLabels[mode]}`,
+      `Character Length   : ${generatedPassword.length} characters`,
+      `Shannon Entropy    : ${metrics.bits} bits`,
+      `Security Tier      : ${metrics.strengthLabel} (Tier ${metrics.tier}/5)`,
+      `Brute-Force Rating : ${metrics.crackTime}`,
+      `Exported Timestamp : ${timestamp}`,
+      `Generator Engine   : Web Cryptography API (crypto.getRandomValues)`,
+      `Developer          : Neeraj Rekwar (https://github.com/neerajrekwar)`,
+      `Privacy Assurance  : 100% Client-Side In-Memory Execution`,
+      "============================================================",
+      "SECURITY ADVISORY:",
+      "- Store this file on an encrypted partition, hardware key, or vault.",
+      "- Delete this plain-text file after transferring into your vault",
+      "  to protect against local filesystem unauthorized inspection.",
+      "============================================================",
+    ].join("\n");
+
+    const blob = new Blob([fileContent], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const safeDate = now.toISOString().slice(0, 10);
+    link.href = url;
+    link.download = `leastpass-${safeDate}-${Math.random().toString(36).substring(2, 7)}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Password Exported!",
+      description: "Downloaded as a plain-text credential file for offline storage.",
+    });
+  };
+
+  // Download QR code as PNG image
+  const downloadQrPng = () => {
+    if (!generatedPassword) return;
+    const canvas = document.getElementById("qr-code-canvas") as HTMLCanvasElement | null;
+    if (!canvas) {
+      toast({
+        title: "Download failed",
+        description: "QR Code canvas is not yet ready. Please open the QR view first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Build a crisp canvas with padding and caption
+      const padding = 20;
+      const exportCanvas = document.createElement("canvas");
+      const exportCtx = exportCanvas.getContext("2d");
+      exportCanvas.width = canvas.width + padding * 2;
+      exportCanvas.height = canvas.height + padding * 2 + 42;
+
+      if (exportCtx) {
+        exportCtx.fillStyle = "#ffffff";
+        exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+
+        // Draw QR code
+        exportCtx.drawImage(canvas, padding, padding);
+
+        // Draw subtitle text
+        exportCtx.fillStyle = "#080f0f";
+        exportCtx.font = "bold 13px monospace";
+        exportCtx.textAlign = "center";
+        exportCtx.fillText("LeastPass Credential", exportCanvas.width / 2, exportCanvas.height - 22);
+
+        exportCtx.fillStyle = "#6b9774";
+        exportCtx.font = "10px sans-serif";
+        exportCtx.fillText("100% Client-Side Privacy", exportCanvas.width / 2, exportCanvas.height - 8);
+
+        const dataUrl = exportCanvas.toDataURL("image/png");
+        const link = document.createElement("a");
+        const safeDate = new Date().toISOString().slice(0, 10);
+        link.href = dataUrl;
+        link.download = `leastpass-qr-${safeDate}-${Math.random().toString(36).substring(2, 7)}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        toast({
+          title: "QR Image Downloaded!",
+          description: "Saved as PNG image for offline scanning and backup.",
+        });
+      }
+    } catch {
+      // Direct fallback
+      const dataUrl = canvas.toDataURL("image/png");
+      const link = document.createElement("a");
+      link.href = dataUrl;
+      link.download = `leastpass-qr-${Date.now().toString(36)}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast({
+        title: "QR Image Downloaded!",
+        description: "Saved as PNG image.",
+      });
+    }
+  };
+
   // Preset setter
   const applyPreset = (presetName: string) => {
     if (presetName === "pin") {
@@ -367,6 +536,9 @@ export default function PasswordGenerator() {
       setSeparator("-");
       setCapitalizeWords(true);
       setIncludeNumberInPassphrase(true);
+    } else if (presetName === "pattern") {
+      setMode("pattern");
+      setCustomPattern("AAAA-NNNN-CCCC");
     }
   };
 
@@ -415,6 +587,19 @@ export default function PasswordGenerator() {
               <Hash className="w-3.5 h-3.5" />
               <span>Numeric PIN</span>
             </button>
+
+            <button
+              type="button"
+              onClick={() => setMode("pattern")}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                mode === "pattern"
+                  ? "bg-[#86ba90] text-white shadow-md shadow-[#86ba90]/30"
+                  : "text-[#3b5240] hover:text-[#080f0f]"
+              }`}
+            >
+              <Sliders className="w-3.5 h-3.5" />
+              <span>Custom Pattern</span>
+            </button>
           </div>
 
           {/* Quick Presets */}
@@ -424,19 +609,25 @@ export default function PasswordGenerator() {
               onClick={() => applyPreset("web")}
               className="px-2.5 py-1 rounded-lg clay-btn-subtle text-[11px] font-semibold text-[#080f0f]"
             >
-              Standard Web (16)
+              Web (16)
             </button>
             <button
               onClick={() => applyPreset("armor")}
               className="px-2.5 py-1 rounded-lg clay-btn-subtle text-[11px] font-semibold text-[#080f0f]"
             >
-              High Armor (32)
+              Armor (32)
             </button>
             <button
               onClick={() => applyPreset("passphrase")}
               className="px-2.5 py-1 rounded-lg clay-btn-subtle text-[11px] font-semibold text-[#080f0f]"
             >
-              4-Word Phrase
+              Passphrase
+            </button>
+            <button
+              onClick={() => applyPreset("pattern")}
+              className="px-2.5 py-1 rounded-lg clay-btn-subtle text-[11px] font-semibold text-[#080f0f]"
+            >
+              Pattern Mask
             </button>
           </div>
         </div>
@@ -539,6 +730,17 @@ export default function PasswordGenerator() {
                 <QrCode className="w-5 h-5" />
               </button>
 
+              {/* Export to .txt File Button */}
+              <button
+                type="button"
+                onClick={exportToFile}
+                className="p-3 rounded-2xl clay-btn-subtle text-[#080f0f] hover:text-[#86ba90] transition-colors"
+                title="Export Password to .txt File"
+                aria-label="Export Password to .txt File"
+              >
+                <Download className="w-5 h-5" />
+              </button>
+
               {/* Regenerate */}
               <button
                 type="button"
@@ -615,19 +817,6 @@ export default function PasswordGenerator() {
                 );
               })}
             </div>
-
-            {/* Continuous animated progress bar 
-            <div className="w-full h-2 rounded-full bg-white/70 overflow-hidden shadow-inner border border-[#86ba90]/15">
-              <motion.div
-                className="h-full rounded-full"
-                initial={false}
-                animate={{
-                  width: `${Math.max(5, metrics.percent)}%`,
-                  backgroundColor: metrics.color,
-                }}
-                transition={{ type: "spring", stiffness: 300, damping: 28 }}
-              />
-            </div>*/}
 
             {/* Contextual Guidance Tip */}
             <div className="flex items-center gap-1.5 text-[11px] text-[#3b5240] pt-1 border-t border-[#86ba90]/15">
@@ -761,6 +950,84 @@ export default function PasswordGenerator() {
                   <span>4 (ATM)</span>
                   <span>6 (Card/Phone)</span>
                   <span>12 digits</span>
+                </div>
+              </div>
+            )}
+
+            {mode === "pattern" && (
+              <div className="clay-well p-5 bg-white/60 space-y-4">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-sm font-bold text-[#080f0f]">
+                      Pattern Format Template
+                    </label>
+                    <span className="font-mono text-xs text-[#6b9774]">
+                      {customPattern.length} characters
+                    </span>
+                  </div>
+
+                  <input
+                    type="text"
+                    value={customPattern}
+                    onChange={(e) => setCustomPattern(e.target.value)}
+                    placeholder="e.g. AAAA-NNNN-CCCC"
+                    className="w-full px-4 py-2.5 font-mono text-sm tracking-wider font-bold rounded-xl clay-well bg-white border border-[#86ba90]/30 text-[#080f0f] focus:outline-none focus:ring-2 focus:ring-[#86ba90]"
+                  />
+                  <p className="text-[11px] text-[#6b9774] mt-1.5">
+                    Define exact slot types (<strong>A</strong> for uppercase, <strong>a</strong> for lowercase, <strong>N</strong> for digit, <strong>C</strong> for alphanumeric, <strong>!</strong> for symbol).
+                  </p>
+                </div>
+
+                {/* Popular Pattern Presets */}
+                <div>
+                  <span className="text-xs font-bold text-[#080f0f] block mb-2">
+                    Quick Pattern Presets:
+                  </span>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { label: "AAAA-NNNN-CCCC", desc: "Alpha-Num-Char" },
+                      { label: "XXXX-XXXX-XXXX-XXXX", desc: "16-Char License Key" },
+                      { label: "LLLL-9999-!!!!", desc: "Mixed Security Code" },
+                      { label: "AA-9999-aa", desc: "Compact ID Token" },
+                    ].map((preset) => (
+                      <button
+                        key={preset.label}
+                        type="button"
+                        onClick={() => setCustomPattern(preset.label)}
+                        className={`p-2 rounded-xl text-left transition-all ${
+                          customPattern === preset.label
+                            ? "bg-[#86ba90] text-white shadow-sm"
+                            : "clay-btn-subtle text-[#080f0f]"
+                        }`}
+                      >
+                        <span className="font-mono font-bold text-xs block truncate">
+                          {preset.label}
+                        </span>
+                        <span
+                          className={`text-[10px] block ${
+                            customPattern === preset.label ? "text-white/80" : "text-[#6b9774]"
+                          }`}
+                        >
+                          {preset.desc}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Legend Guide */}
+                <div className="pt-3 border-t border-[#86ba90]/20 space-y-1 text-xs text-[#3b5240]">
+                  <span className="font-bold text-[#080f0f] block text-[11px] mb-1">
+                    Pattern Token Legend:
+                  </span>
+                  <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[11px] font-mono">
+                    <div><span className="font-bold text-[#080f0f]">A / U</span> : Uppercase (A-Z)</div>
+                    <div><span className="font-bold text-[#080f0f]">a / L</span> : Lowercase (a-z)</div>
+                    <div><span className="font-bold text-[#080f0f]">N / 9</span> : Number (0-9)</div>
+                    <div><span className="font-bold text-[#080f0f]">C / X</span> : Alphanumeric</div>
+                    <div><span className="font-bold text-[#080f0f]">! / S</span> : Special symbol</div>
+                    <div><span className="font-bold text-[#080f0f]">- / _</span> : Literal separator</div>
+                  </div>
                 </div>
               </div>
             )}
@@ -910,6 +1177,40 @@ export default function PasswordGenerator() {
               </div>
             )}
 
+            {mode === "pattern" && (
+              <div className="space-y-3">
+                <div className="text-xs font-bold text-[#080f0f] uppercase tracking-wider mb-2">
+                  Pattern Options
+                </div>
+
+                <label className="flex items-center justify-between p-3.5 rounded-2xl clay-well bg-white/70 cursor-pointer hover:bg-white transition-colors">
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={excludeAmbiguous}
+                      onChange={(e) => setExcludeAmbiguous(e.target.checked)}
+                      className="w-4 h-4 rounded text-[#86ba90] accent-[#86ba90] cursor-pointer"
+                    />
+                    <div>
+                      <span className="text-sm font-semibold text-[#080f0f] block">
+                        Exclude Ambiguous Characters
+                      </span>
+                      <span className="text-[11px] text-[#6b9774]">
+                        Removes 0, O, l, 1, I, | from pattern generation
+                      </span>
+                    </div>
+                  </div>
+                </label>
+
+                <div className="p-4 rounded-2xl clay-well bg-white/70 text-xs text-[#3b5240] space-y-2">
+                  <p className="font-semibold text-[#080f0f]">Custom Format Assurance:</p>
+                  <p>
+                    All non-token characters (such as hyphens, colons, and underscores) are kept strictly intact. Random characters are chosen with hardware-backed cryptographic randomness.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Quick Action Generate Button */}
             <button
               type="button"
@@ -917,7 +1218,16 @@ export default function PasswordGenerator() {
               className="w-full py-3.5 px-6 rounded-2xl clay-btn text-white font-bold text-sm flex items-center justify-center gap-2 mt-4"
             >
               <RotateCw className="w-4 h-4" />
-              <span>Generate New Secure {mode === "pin" ? "PIN" : mode === "passphrase" ? "Passphrase" : "Password"}</span>
+              <span>
+                Generate New Secure{" "}
+                {mode === "pin"
+                  ? "PIN"
+                  : mode === "passphrase"
+                  ? "Passphrase"
+                  : mode === "pattern"
+                  ? "Pattern String"
+                  : "Password"}
+              </span>
             </button>
           </div>
         </div>
@@ -1026,11 +1336,12 @@ export default function PasswordGenerator() {
                   Scan with your phone camera or password manager to transfer this password instantly without typing.
                 </p>
 
-                {/* QR Code Container */}
-                <div className="p-4 rounded-2xl bg-white shadow-md inline-flex items-center justify-center mx-auto mb-4 border border-[#86ba90]/25">
-                  <QRCodeSVG
+                {/* QR Code Container with Canvas Rendering */}
+                <div className="p-4 rounded-2xl bg-white shadow-md inline-flex items-center justify-center mx-auto mb-2 border border-[#86ba90]/25">
+                  <QRCodeCanvas
+                    id="qr-code-canvas"
                     value={generatedPassword || " "}
-                    size={190}
+                    size={200}
                     level="M"
                     fgColor="#080f0f"
                     bgColor="#ffffff"
@@ -1038,28 +1349,53 @@ export default function PasswordGenerator() {
                   />
                 </div>
 
+                {/* Direct Download PNG Action */}
+                <div className="mb-3">
+                  <button
+                    type="button"
+                    onClick={downloadQrPng}
+                    className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-xl clay-btn-subtle text-[#080f0f] hover:text-[#86ba90] text-xs font-bold transition-all"
+                    title="Download high-resolution QR PNG"
+                  >
+                    <Download className="w-3.5 h-3.5 text-[#86ba90]" />
+                    <span>Download QR as PNG image</span>
+                  </button>
+                </div>
+
                 {/* Masked / Plain Password Preview */}
                 <div className="p-2.5 rounded-xl clay-well bg-white/70 text-xs font-mono text-[#080f0f] break-all select-all mb-4 max-h-20 overflow-y-auto">
                   {isMasked ? "•".repeat(generatedPassword.length) : generatedPassword}
                 </div>
 
-                {/* Action Buttons */}
-                <div className="flex items-center gap-2">
+                {/* Action Buttons Grid */}
+                <div className="grid grid-cols-3 gap-2">
                   <button
                     type="button"
                     onClick={() => copyToClipboard()}
-                    className="flex-1 py-2.5 px-4 rounded-xl clay-btn text-white text-xs font-bold flex items-center justify-center gap-2"
+                    className="py-2.5 px-3 rounded-xl clay-btn text-white text-xs font-bold flex items-center justify-center gap-1.5"
                   >
                     {isCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                    <span>{isCopied ? "Copied!" : "Copy String"}</span>
+                    <span>{isCopied ? "Copied!" : "Copy"}</span>
                   </button>
 
                   <button
                     type="button"
-                    onClick={() => setShowQrModal(false)}
-                    className="py-2.5 px-4 rounded-xl clay-btn-subtle text-[#080f0f] text-xs font-bold"
+                    onClick={downloadQrPng}
+                    className="py-2.5 px-3 rounded-xl clay-btn-subtle text-[#080f0f] text-xs font-bold flex items-center justify-center gap-1.5 hover:text-[#86ba90]"
+                    title="Download QR Code as PNG Image"
                   >
-                    Done
+                    <ImageIcon className="w-3.5 h-3.5 text-[#86ba90]" />
+                    <span>Save PNG</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={exportToFile}
+                    className="py-2.5 px-3 rounded-xl clay-btn-subtle text-[#080f0f] text-xs font-bold flex items-center justify-center gap-1.5 hover:text-[#86ba90]"
+                    title="Download Plain-Text File"
+                  >
+                    <Download className="w-3.5 h-3.5 text-[#86ba90]" />
+                    <span>.txt</span>
                   </button>
                 </div>
 
