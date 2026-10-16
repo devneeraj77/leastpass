@@ -13,7 +13,7 @@ const inter = Inter({
 
 const siteUrl =
   process.env.NEXT_PUBLIC_APP_URL ||
-  "https://ais-pre-oadcti4whd6ltse56q3rhf-291116410510.asia-southeast1.run.app";
+  "https://leastpass.vercel.app";
 
 export const viewport: Viewport = {
   themeColor: "#86ba90",
