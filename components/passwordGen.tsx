@@ -16,7 +16,11 @@ import {
   History,
   Trash2,
   Sparkles,
+  QrCode,
+  X,
+  Smartphone,
 } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import { useToast } from "@/hooks/use-toast";
 
 // Word pool for memorable passphrases
@@ -69,6 +73,7 @@ export default function PasswordGenerator() {
   const [spinCount, setSpinCount] = useState<number>(0);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [showHistory, setShowHistory] = useState<boolean>(false);
+  const [showQrModal, setShowQrModal] = useState<boolean>(false);
 
   // Secure random generator helper using Web Crypto API
   const getSecureRandomInt = (max: number): number => {
@@ -437,14 +442,78 @@ export default function PasswordGenerator() {
         </div>
 
         {/* Password Display Card (Clay Screen Well) */}
-        <div className="clay-well p-5 md:p-6 mb-6 relative">
+        <motion.div
+          animate={
+            isCopied
+              ? {
+                  boxShadow: [
+                    "inset 5px 5px 12px rgba(84, 126, 93, 0.2), inset -4px -4px 10px rgba(255, 255, 255, 0.85)",
+                    "inset 5px 5px 14px rgba(84, 126, 93, 0.35), inset -4px -4px 12px rgba(255, 255, 255, 0.95), 0 0 16px rgba(134, 186, 144, 0.3)",
+                    "inset 5px 5px 12px rgba(84, 126, 93, 0.2), inset -4px -4px 10px rgba(255, 255, 255, 0.85)",
+                  ],
+                }
+              : {}
+          }
+          transition={{ duration: 0.4 }}
+          className="clay-well p-5 md:p-6 mb-6 relative"
+        >
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            {/* The Output String */}
-            <div className="flex-1 overflow-x-auto py-2">
-              <span className="font-mono text-xl sm:text-2xl md:text-3xl font-bold tracking-wider text-[#080f0f] select-all break-all">
+            {/* The Output String with Pop & Checkmark Feedback */}
+            <motion.div
+              onClick={() => copyToClipboard()}
+              title="Click anywhere to copy password"
+              animate={
+                isCopied
+                  ? {
+                      scale: [1, 1.025, 1],
+                      backgroundColor: [
+                        "rgba(255,255,255,0)",
+                        "rgba(134,186,144,0.18)",
+                        "rgba(255,255,255,0)",
+                      ],
+                    }
+                  : {}
+              }
+              transition={{ duration: 0.35, ease: "easeInOut" }}
+              className="flex-1 overflow-x-auto py-2 px-3 rounded-xl cursor-pointer hover:bg-black/[0.02] transition-colors relative flex items-center justify-between gap-3 group"
+            >
+              <motion.span
+                animate={
+                  isCopied
+                    ? {
+                        scale: [1, 1.015, 1],
+                        color: ["#080f0f", "#547e5d", "#080f0f"],
+                      }
+                    : {}
+                }
+                transition={{ duration: 0.3 }}
+                className="font-mono text-xl sm:text-2xl md:text-3xl font-bold tracking-wider text-[#080f0f] select-all break-all"
+              >
                 {isMasked ? "•".repeat(generatedPassword.length || 12) : generatedPassword}
-              </span>
-            </div>
+              </motion.span>
+
+              {/* Animated Floating Checkmark & Pop Badge */}
+              <AnimatePresence>
+                {isCopied && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.5, x: -10 }}
+                    animate={{ opacity: 1, scale: 1, x: 0 }}
+                    exit={{ opacity: 0, scale: 0.7, x: 10 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 22 }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#86ba90] text-white text-xs font-bold shadow-md shadow-[#86ba90]/35 shrink-0 select-none ml-2"
+                  >
+                    <motion.div
+                      initial={{ scale: 0, rotate: -45 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{ type: "spring", stiffness: 650, damping: 20 }}
+                    >
+                      <Check className="w-3.5 h-3.5 stroke-[3]" />
+                    </motion.div>
+                    <span>Copied!</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
 
             {/* Quick Action Buttons */}
             <div className="flex items-center gap-2 self-end md:self-center shrink-0">
@@ -457,6 +526,17 @@ export default function PasswordGenerator() {
                 aria-label={isMasked ? "Reveal Password" : "Mask Password"}
               >
                 {isMasked ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
+              </button>
+
+              {/* QR Code Mobile Transfer Button */}
+              <button
+                type="button"
+                onClick={() => setShowQrModal(true)}
+                className="p-3 rounded-2xl clay-btn-subtle text-[#080f0f] hover:text-[#86ba90] transition-colors"
+                title="Transfer to Mobile via QR Code"
+                aria-label="Transfer to Mobile via QR Code"
+              >
+                <QrCode className="w-5 h-5" />
               </button>
 
               {/* Regenerate */}
@@ -497,29 +577,28 @@ export default function PasswordGenerator() {
             </div>
           </div>
 
-          {/* Real-Time Visual Strength Progress Bar & Entropy Telemetry */}
-          <div className="mt-5 pt-4 border-t border-[#86ba90]/25">
-            <div className="flex flex-wrap items-center justify-between text-xs font-semibold mb-2 gap-2">
+          {/* Real-Time Strength Box inside Bottom of Password Bar */}
+          <div className="mt-4 pt-3.5 border-t border-[#86ba90]/25 space-y-2.5">
+            <div className="flex flex-wrap items-center justify-between text-xs gap-2">
+              <span className="font-bold text-[#080f0f] flex items-center gap-1.5">
+                <Shield className="w-3.5 h-3.5 text-[#86ba90]" />
+                <span>Real-Time Strength:</span>
+              </span>
               <div className="flex items-center gap-2">
-                <span className="text-[#3b5240]">Security Rating:</span>
                 <span
-                  className="px-2.5 py-0.5 rounded-full text-[11px] font-bold text-white shadow-sm transition-colors duration-200"
+                  className="px-2.5 py-0.5 rounded-full font-bold text-white text-[11px] transition-colors duration-200 shadow-sm"
                   style={{ backgroundColor: metrics.color }}
                 >
-                  {metrics.strengthLabel} (Tier {metrics.tier}/5)
+                  {metrics.strengthLabel} (Tier {metrics.tier}/5) · {metrics.bits} bits
                 </span>
-                <span className="text-[#6b9774] font-mono font-bold">
-                  ({metrics.bits} bits entropy)
+                <span className="text-[#6b9774] text-[11px]">
+                  Crack time: <strong className="text-[#080f0f] font-mono">{metrics.crackTime}</strong>
                 </span>
-              </div>
-
-              <div className="text-[#6b9774]">
-                Crack Time: <strong className="text-[#080f0f] font-mono">{metrics.crackTime}</strong>
               </div>
             </div>
 
-            {/* 5-Segment Visual Clay Indicators */}
-            <div className="grid grid-cols-5 gap-1.5 my-2.5">
+            {/* 5-segment visual indicators */}
+            <div className="grid grid-cols-5 gap-1.5 my-1">
               {[1, 2, 3, 4, 5].map((lvl) => {
                 const isActive = metrics.tier >= lvl;
                 return (
@@ -529,7 +608,7 @@ export default function PasswordGenerator() {
                     style={{
                       backgroundColor: isActive ? metrics.color : "rgba(134, 186, 144, 0.2)",
                       boxShadow: isActive
-                        ? `0 2px 6px ${metrics.color}40, inset 0 1px 2px rgba(255,255,255,0.6)`
+                        ? `0 2px 5px ${metrics.color}35`
                         : "inset 0 1px 2px rgba(0,0,0,0.06)",
                     }}
                   />
@@ -537,8 +616,8 @@ export default function PasswordGenerator() {
               })}
             </div>
 
-            {/* Continuous Clay Progress Track */}
-            <div className="w-full h-3 rounded-full bg-white/70 overflow-hidden shadow-inner p-0.5 border border-[#86ba90]/20">
+            {/* Continuous animated progress bar 
+            <div className="w-full h-2 rounded-full bg-white/70 overflow-hidden shadow-inner border border-[#86ba90]/15">
               <motion.div
                 className="h-full rounded-full"
                 initial={false}
@@ -548,15 +627,15 @@ export default function PasswordGenerator() {
                 }}
                 transition={{ type: "spring", stiffness: 300, damping: 28 }}
               />
-            </div>
+            </div>*/}
 
-            {/* Real-time Guidance Tip */}
-            <div className="flex items-center gap-1.5 text-[11px] text-[#3b5240] mt-2.5">
+            {/* Contextual Guidance Tip */}
+            <div className="flex items-center gap-1.5 text-[11px] text-[#3b5240] pt-1 border-t border-[#86ba90]/15">
               <Sparkles className="w-3.5 h-3.5 text-[#86ba90] shrink-0" />
               <span>{metrics.tip}</span>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Controls Grid */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
@@ -831,40 +910,6 @@ export default function PasswordGenerator() {
               </div>
             )}
 
-            {/* In-Controls Live Strength Feedback Widget */}
-            <div className="p-4 rounded-2xl clay-well bg-white/80 space-y-2 border border-[#86ba90]/25">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-bold text-[#080f0f] flex items-center gap-1.5">
-                  <Shield className="w-3.5 h-3.5 text-[#86ba90]" />
-                  <span>Real-Time Configuration Strength:</span>
-                </span>
-                <span
-                  className="px-2 py-0.5 rounded-full font-bold text-white text-[10px]"
-                  style={{ backgroundColor: metrics.color }}
-                >
-                  {metrics.strengthLabel} ({metrics.bits} bits)
-                </span>
-              </div>
-
-              {/* 5-segment live mini indicator */}
-              <div className="grid grid-cols-5 gap-1">
-                {[1, 2, 3, 4, 5].map((lvl) => (
-                  <div
-                    key={lvl}
-                    className="h-1.5 rounded-full transition-all duration-300"
-                    style={{
-                      backgroundColor: metrics.tier >= lvl ? metrics.color : "rgba(134, 186, 144, 0.2)",
-                    }}
-                  />
-                ))}
-              </div>
-
-              <div className="flex justify-between items-center text-[10px] text-[#6b9774] pt-0.5">
-                <span>Brute-force crack time:</span>
-                <strong className="text-[#080f0f] font-mono">{metrics.crackTime}</strong>
-              </div>
-            </div>
-
             {/* Quick Action Generate Button */}
             <button
               type="button"
@@ -935,6 +980,95 @@ export default function PasswordGenerator() {
                 ))
               )}
             </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* QR Code Mobile Transfer Modal */}
+        <AnimatePresence>
+          {showQrModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setShowQrModal(false)}
+                className="fixed inset-0 bg-black/45 backdrop-blur-sm"
+              />
+
+              <motion.div
+                initial={{ opacity: 0, scale: 0.92, y: 15 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.92, y: 15 }}
+                transition={{ type: "spring", damping: 25, stiffness: 350 }}
+                className="relative w-full max-w-sm clay-card bg-[#f8fbf9] p-6 text-center text-[#080f0f] z-10 border border-white/90 shadow-2xl"
+              >
+                {/* Close Button */}
+                <button
+                  type="button"
+                  onClick={() => setShowQrModal(false)}
+                  className="absolute top-4 right-4 p-2 rounded-xl text-[#6b9774] hover:text-[#080f0f] clay-btn-subtle transition-colors"
+                  aria-label="Close QR Modal"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+
+                {/* Header */}
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <div className="w-8 h-8 rounded-xl clay-btn flex items-center justify-center text-white">
+                    <Smartphone className="w-4 h-4" />
+                  </div>
+                  <h3 className="text-lg font-bold text-[#080f0f]">
+                    Mobile QR Transfer
+                  </h3>
+                </div>
+
+                <p className="text-xs text-[#6b9774] mb-4">
+                  Scan with your phone camera or password manager to transfer this password instantly without typing.
+                </p>
+
+                {/* QR Code Container */}
+                <div className="p-4 rounded-2xl bg-white shadow-md inline-flex items-center justify-center mx-auto mb-4 border border-[#86ba90]/25">
+                  <QRCodeSVG
+                    value={generatedPassword || " "}
+                    size={190}
+                    level="M"
+                    fgColor="#080f0f"
+                    bgColor="#ffffff"
+                    includeMargin={false}
+                  />
+                </div>
+
+                {/* Masked / Plain Password Preview */}
+                <div className="p-2.5 rounded-xl clay-well bg-white/70 text-xs font-mono text-[#080f0f] break-all select-all mb-4 max-h-20 overflow-y-auto">
+                  {isMasked ? "•".repeat(generatedPassword.length) : generatedPassword}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard()}
+                    className="flex-1 py-2.5 px-4 rounded-xl clay-btn text-white text-xs font-bold flex items-center justify-center gap-2"
+                  >
+                    {isCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                    <span>{isCopied ? "Copied!" : "Copy String"}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowQrModal(false)}
+                    className="py-2.5 px-4 rounded-xl clay-btn-subtle text-[#080f0f] text-xs font-bold"
+                  >
+                    Done
+                  </button>
+                </div>
+
+                <div className="mt-4 pt-3 border-t border-[#86ba90]/20 flex items-center justify-center gap-1.5 text-[10px] text-[#6b9774]">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#86ba90]" />
+                  <span>100% Client-side · Encoded in browser RAM</span>
+                </div>
+              </motion.div>
+            </div>
           )}
         </AnimatePresence>
       </div>
