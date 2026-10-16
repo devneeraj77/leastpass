@@ -4,7 +4,7 @@ import { PRESET_BLOG_POSTS } from "@/lib/blog-data";
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl =
     process.env.NEXT_PUBLIC_APP_URL ||
-    "https://ais-pre-oadcti4whd6ltse56q3rhf-291116410510.asia-southeast1.run.app";
+    "https://leastpass.vercel.app";
 
   const staticRoutes: MetadataRoute.Sitemap = [
     {
