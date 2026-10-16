@@ -9,11 +9,13 @@ import {
   Eye,
   EyeOff,
   ShieldCheck,
+  Shield,
   Zap,
   Hash,
   BookOpen,
   History,
   Trash2,
+  Sparkles,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -78,105 +80,200 @@ export default function PasswordGenerator() {
     return array[0] % max;
   };
 
-  // Generate logic
-  const generatePassword = useCallback(() => {
-    let result = "";
+  // Shannon Information Entropy & Security Evaluation Logic
+  const calculateEntropy = useCallback((pw: string) => {
+    if (!pw) {
+      return {
+        bits: 0,
+        strengthLabel: "Empty",
+        tier: 0,
+        percent: 5,
+        crackTime: "Instant (< 1 ms)",
+        color: "#ef4444",
+        tip: "Configure your desired length and character sets to evaluate strength.",
+      };
+    }
 
-    if (mode === "random") {
-      let lowercaseChars = "abcdefghijklmnopqrstuvwxyz";
-      let uppercaseChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-      let numberChars = "0123456789";
-      let symbolChars = "!@#$%^&*()_+-=[]{}|;:,.<>?";
+    let poolSize = 0;
+    if (/[a-z]/.test(pw)) poolSize += 26;
+    if (/[A-Z]/.test(pw)) poolSize += 26;
+    if (/[0-9]/.test(pw)) poolSize += 10;
+    if (/[^a-zA-Z0-9]/.test(pw)) poolSize += 33;
 
-      if (excludeAmbiguous) {
-        lowercaseChars = lowercaseChars.replace(/[l]/g, "");
-        uppercaseChars = uppercaseChars.replace(/[O|I]/g, "");
-        numberChars = numberChars.replace(/[0|1]/g, "");
-        symbolChars = symbolChars.replace(/[|]/g, "");
-      }
+    if (poolSize === 0) poolSize = 10;
 
-      let pool = "";
-      const guaranteedChars: string[] = [];
+    // Shannon Information Entropy: E = L * log2(N)
+    const bits = Math.round(pw.length * (Math.log(poolSize) / Math.LN2));
 
-      if (includeLowercase) {
-        pool += lowercaseChars;
-        guaranteedChars.push(lowercaseChars[getSecureRandomInt(lowercaseChars.length)]);
-      }
-      if (includeUppercase) {
-        pool += uppercaseChars;
-        guaranteedChars.push(uppercaseChars[getSecureRandomInt(uppercaseChars.length)]);
-      }
-      if (includeNumbers) {
-        pool += numberChars;
-        guaranteedChars.push(numberChars[getSecureRandomInt(numberChars.length)]);
-      }
-      if (includeSymbols) {
-        pool += symbolChars;
-        guaranteedChars.push(symbolChars[getSecureRandomInt(symbolChars.length)]);
-      }
+    let strengthLabel = "Very Weak";
+    let tier = 1;
+    let crackTime = "Instant (< 1s)";
+    let percent = 20;
+    let color = "#ef4444"; // red
+    let tip = "Very vulnerable to brute-force attacks. Increase length to 14+ characters.";
 
-      // Default fallback if user unchecks all
-      if (pool.length === 0) {
-        pool = lowercaseChars + numberChars;
-        guaranteedChars.push(lowercaseChars[0]);
-      }
+    if (bits >= 85) {
+      strengthLabel = "Unbreakable";
+      tier = 5;
+      crackTime = "Trillions of centuries";
+      percent = 100;
+      color = "#10b981"; // emerald green
+      tip = "Maximum cryptographic armor. Exceeds banking, NIST 800-63B, and military standards.";
+    } else if (bits >= 65) {
+      strengthLabel = "Strong";
+      tier = 4;
+      crackTime = "450,000+ years";
+      percent = 80;
+      color = "#86ba90"; // our primary sage green
+      tip = "Highly secure. Fully resistant to high-speed offline GPU hash clusters.";
+    } else if (bits >= 50) {
+      strengthLabel = "Moderate";
+      tier = 3;
+      crackTime = "3 to 10 years";
+      percent = 60;
+      color = "#3b82f6"; // blue
+      tip = "Good for standard consumer web accounts. Enable special symbols to reach Strong.";
+    } else if (bits >= 35) {
+      strengthLabel = "Weak";
+      tier = 2;
+      crackTime = "3 days to 2 weeks";
+      percent = 40;
+      color = "#f59e0b"; // amber
+      tip = "Can be cracked quickly by modern hardware. Add uppercase, numbers, or length.";
+    }
 
-      const remainingLength = Math.max(0, passwordLength - guaranteedChars.length);
-      const randomParts: string[] = [];
-      for (let i = 0; i < remainingLength; i++) {
-        randomParts.push(pool[getSecureRandomInt(pool.length)]);
-      }
+    return { bits, strengthLabel, tier, percent, crackTime, color, tip };
+  }, []);
 
-      // Merge and shuffle guaranteed chars
-      const fullList = [...guaranteedChars, ...randomParts];
-      for (let i = fullList.length - 1; i > 0; i--) {
-        const j = getSecureRandomInt(i + 1);
-        [fullList[i], fullList[j]] = [fullList[j], fullList[i]];
-      }
-      result = fullList.join("");
+  // Generate logic (recordHistory specifies whether to record into the recent session vault)
+  const generatePassword = useCallback(
+    (recordHistory: boolean = false) => {
+      let result = "";
 
-    } else if (mode === "passphrase") {
-      const chosenWords: string[] = [];
-      for (let i = 0; i < wordCount; i++) {
-        let w = PASSPHRASE_WORDS[getSecureRandomInt(PASSPHRASE_WORDS.length)];
-        if (capitalizeWords) {
-          w = w.charAt(0).toUpperCase() + w.slice(1);
+      if (mode === "random") {
+        let lowercaseChars = "abcdefghijklmnopqrstuvwxyz";
+        let uppercaseChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        let numberChars = "0123456789";
+        let symbolChars = "!@#$%^&*()_+-=[]{}|;:,.<>?";
+
+        if (excludeAmbiguous) {
+          lowercaseChars = lowercaseChars.replace(/[l]/g, "");
+          uppercaseChars = uppercaseChars.replace(/[O|I]/g, "");
+          numberChars = numberChars.replace(/[0|1]/g, "");
+          symbolChars = symbolChars.replace(/[|]/g, "");
         }
-        chosenWords.push(w);
+
+        let pool = "";
+        const guaranteedChars: string[] = [];
+
+        if (includeLowercase) {
+          pool += lowercaseChars;
+          guaranteedChars.push(lowercaseChars[getSecureRandomInt(lowercaseChars.length)]);
+        }
+        if (includeUppercase) {
+          pool += uppercaseChars;
+          guaranteedChars.push(uppercaseChars[getSecureRandomInt(uppercaseChars.length)]);
+        }
+        if (includeNumbers) {
+          pool += numberChars;
+          guaranteedChars.push(numberChars[getSecureRandomInt(numberChars.length)]);
+        }
+        if (includeSymbols) {
+          pool += symbolChars;
+          guaranteedChars.push(symbolChars[getSecureRandomInt(symbolChars.length)]);
+        }
+
+        // Default fallback if user unchecks all
+        if (pool.length === 0) {
+          pool = lowercaseChars + numberChars;
+          guaranteedChars.push(lowercaseChars[0]);
+        }
+
+        const remainingLength = Math.max(0, passwordLength - guaranteedChars.length);
+        const randomParts: string[] = [];
+        for (let i = 0; i < remainingLength; i++) {
+          randomParts.push(pool[getSecureRandomInt(pool.length)]);
+        }
+
+        // Merge and shuffle guaranteed chars
+        const fullList = [...guaranteedChars, ...randomParts];
+        for (let i = fullList.length - 1; i > 0; i--) {
+          const j = getSecureRandomInt(i + 1);
+          [fullList[i], fullList[j]] = [fullList[j], fullList[i]];
+        }
+        result = fullList.join("");
+
+      } else if (mode === "passphrase") {
+        const chosenWords: string[] = [];
+        for (let i = 0; i < wordCount; i++) {
+          let w = PASSPHRASE_WORDS[getSecureRandomInt(PASSPHRASE_WORDS.length)];
+          if (capitalizeWords) {
+            w = w.charAt(0).toUpperCase() + w.slice(1);
+          }
+          chosenWords.push(w);
+        }
+
+        if (includeNumberInPassphrase) {
+          const randomNum = getSecureRandomInt(90) + 10; // 10 to 99
+          const insertIndex = getSecureRandomInt(chosenWords.length + 1);
+          chosenWords.splice(insertIndex, 0, randomNum.toString());
+        }
+
+        result = chosenWords.join(separator);
+
+      } else if (mode === "pin") {
+        const digits = "0123456789";
+        for (let i = 0; i < pinLength; i++) {
+          result += digits[getSecureRandomInt(digits.length)];
+        }
       }
 
-      if (includeNumberInPassphrase) {
-        const randomNum = getSecureRandomInt(90) + 10; // 10 to 99
-        const insertIndex = getSecureRandomInt(chosenWords.length + 1);
-        chosenWords.splice(insertIndex, 0, randomNum.toString());
+      setGeneratedPassword(result);
+
+      if (recordHistory) {
+        setSpinCount((prev) => prev + 1);
+        if (result) {
+          setHistory((prev) => {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+            });
+            const newItem: HistoryItem = {
+              id: Math.random().toString(36).substring(2, 9),
+              password: result,
+              timestamp: timeStr,
+              strength: calculateEntropy(result).strengthLabel,
+            };
+            return [newItem, ...prev.filter((item) => item.password !== result)].slice(0, 5);
+          });
+        }
       }
+    },
+    [
+      mode,
+      passwordLength,
+      includeUppercase,
+      includeLowercase,
+      includeNumbers,
+      includeSymbols,
+      excludeAmbiguous,
+      wordCount,
+      separator,
+      capitalizeWords,
+      includeNumberInPassphrase,
+      pinLength,
+      calculateEntropy,
+    ]
+  );
 
-      result = chosenWords.join(separator);
+  // Live entropy metrics calculated synchronously from generatedPassword
+  const metrics = useMemo(() => calculateEntropy(generatedPassword), [generatedPassword, calculateEntropy]);
 
-    } else if (mode === "pin") {
-      const digits = "0123456789";
-      for (let i = 0; i < pinLength; i++) {
-        result += digits[getSecureRandomInt(digits.length)];
-      }
-    }
-
-    setGeneratedPassword(result);
-    setSpinCount((prev) => prev + 1);
-
-    // Add to local history (keep last 5)
-    if (result) {
-      setHistory((prev) => {
-        const now = new Date();
-        const timeStr = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-        const newItem: HistoryItem = {
-          id: Math.random().toString(36).substring(2, 9),
-          password: result,
-          timestamp: timeStr,
-          strength: calculateEntropy(result).strengthLabel,
-        };
-        return [newItem, ...prev.filter((item) => item.password !== result)].slice(0, 5);
-      });
-    }
+  // Real-time update effect: whenever any settings toggle, regenerate seamlessly in real-time
+  useEffect(() => {
+    generatePassword(false);
   }, [
     mode,
     passwordLength,
@@ -190,59 +287,8 @@ export default function PasswordGenerator() {
     capitalizeWords,
     includeNumberInPassphrase,
     pinLength,
+    generatePassword,
   ]);
-
-  // Calculate Shannon Entropy & Crack Time
-  const calculateEntropy = (pw: string) => {
-    if (!pw) return { bits: 0, strengthLabel: "Empty", percent: 0, crackTime: "Instant", color: "#f87171" };
-
-    let poolSize = 0;
-    if (/[a-z]/.test(pw)) poolSize += 26;
-    if (/[A-Z]/.test(pw)) poolSize += 26;
-    if (/[0-9]/.test(pw)) poolSize += 10;
-    if (/[^a-zA-Z0-9]/.test(pw)) poolSize += 33;
-
-    if (poolSize === 0) poolSize = 10;
-
-    // Entropy = Length * log2(PoolSize)
-    const bits = Math.round(pw.length * (Math.log(poolSize) / Math.LN2));
-
-    let strengthLabel = "Very Weak";
-    let crackTime = "Instant (< 1s)";
-    let percent = 20;
-    let color = "#ef4444"; // red
-
-    if (bits >= 85) {
-      strengthLabel = "Unbreakable";
-      crackTime = "Trillions of centuries";
-      percent = 100;
-      color = "#10b981"; // emerald green
-    } else if (bits >= 65) {
-      strengthLabel = "Strong";
-      crackTime = "450,000 years";
-      percent = 80;
-      color = "#86ba90"; // our primary sage green
-    } else if (bits >= 50) {
-      strengthLabel = "Moderate";
-      crackTime = "3 to 10 years";
-      percent = 60;
-      color = "#3b82f6"; // blue
-    } else if (bits >= 35) {
-      strengthLabel = "Weak";
-      crackTime = "3 days to 2 weeks";
-      percent = 40;
-      color = "#f59e0b"; // amber
-    }
-
-    return { bits, strengthLabel, percent, crackTime, color };
-  };
-
-  const metrics = useMemo(() => calculateEntropy(generatedPassword), [generatedPassword]);
-
-  // Generate on mount or mode change
-  useEffect(() => {
-    generatePassword();
-  }, [mode, generatePassword]);
 
   const copyToClipboard = (textToCopy?: string) => {
     const text = textToCopy || generatedPassword;
@@ -416,7 +462,7 @@ export default function PasswordGenerator() {
               {/* Regenerate */}
               <button
                 type="button"
-                onClick={generatePassword}
+                onClick={() => generatePassword(true)}
                 className="p-3 rounded-2xl clay-btn-subtle text-[#080f0f] hover:text-[#86ba90] transition-colors"
                 title="Generate New Password"
                 aria-label="Generate New Password"
@@ -451,36 +497,63 @@ export default function PasswordGenerator() {
             </div>
           </div>
 
-          {/* Strength Bar & Telemetry */}
+          {/* Real-Time Visual Strength Progress Bar & Entropy Telemetry */}
           <div className="mt-5 pt-4 border-t border-[#86ba90]/25">
-            <div className="flex flex-wrap items-center justify-between text-xs font-semibold mb-2">
+            <div className="flex flex-wrap items-center justify-between text-xs font-semibold mb-2 gap-2">
               <div className="flex items-center gap-2">
                 <span className="text-[#3b5240]">Security Rating:</span>
                 <span
-                  className="px-2 py-0.5 rounded-full text-[11px] font-bold text-white shadow-sm"
+                  className="px-2.5 py-0.5 rounded-full text-[11px] font-bold text-white shadow-sm transition-colors duration-200"
                   style={{ backgroundColor: metrics.color }}
                 >
-                  {metrics.strengthLabel}
+                  {metrics.strengthLabel} (Tier {metrics.tier}/5)
                 </span>
-                <span className="text-[#6b9774] font-mono">
+                <span className="text-[#6b9774] font-mono font-bold">
                   ({metrics.bits} bits entropy)
                 </span>
               </div>
 
               <div className="text-[#6b9774]">
-                Crack Time: <strong className="text-[#080f0f]">{metrics.crackTime}</strong>
+                Crack Time: <strong className="text-[#080f0f] font-mono">{metrics.crackTime}</strong>
               </div>
             </div>
 
-            {/* Clay Progress Track */}
-            <div className="w-full h-3 rounded-full bg-white/70 overflow-hidden shadow-inner p-0.5">
+            {/* 5-Segment Visual Clay Indicators */}
+            <div className="grid grid-cols-5 gap-1.5 my-2.5">
+              {[1, 2, 3, 4, 5].map((lvl) => {
+                const isActive = metrics.tier >= lvl;
+                return (
+                  <div
+                    key={lvl}
+                    className="h-2 rounded-full transition-all duration-300 relative overflow-hidden"
+                    style={{
+                      backgroundColor: isActive ? metrics.color : "rgba(134, 186, 144, 0.2)",
+                      boxShadow: isActive
+                        ? `0 2px 6px ${metrics.color}40, inset 0 1px 2px rgba(255,255,255,0.6)`
+                        : "inset 0 1px 2px rgba(0,0,0,0.06)",
+                    }}
+                  />
+                );
+              })}
+            </div>
+
+            {/* Continuous Clay Progress Track */}
+            <div className="w-full h-3 rounded-full bg-white/70 overflow-hidden shadow-inner p-0.5 border border-[#86ba90]/20">
               <motion.div
-                className="h-full rounded-full transition-all duration-300"
-                style={{
-                  width: `${metrics.percent}%`,
+                className="h-full rounded-full"
+                initial={false}
+                animate={{
+                  width: `${Math.max(5, metrics.percent)}%`,
                   backgroundColor: metrics.color,
                 }}
+                transition={{ type: "spring", stiffness: 300, damping: 28 }}
               />
+            </div>
+
+            {/* Real-time Guidance Tip */}
+            <div className="flex items-center gap-1.5 text-[11px] text-[#3b5240] mt-2.5">
+              <Sparkles className="w-3.5 h-3.5 text-[#86ba90] shrink-0" />
+              <span>{metrics.tip}</span>
             </div>
           </div>
         </div>
@@ -526,7 +599,7 @@ export default function PasswordGenerator() {
                 />
                 <div className="flex justify-between text-[11px] text-[#6b9774] mt-1 font-mono">
                   <span>6 chars</span>
-                  <span>16 (Recommended)</span>
+                  <span>16 (Standard)</span>
                   <span>64 chars</span>
                 </div>
               </div>
@@ -551,6 +624,11 @@ export default function PasswordGenerator() {
                     onChange={(e) => setWordCount(Number(e.target.value))}
                     className="w-full h-2.5 bg-[#86ba90]/30 rounded-lg appearance-none cursor-pointer accent-[#86ba90]"
                   />
+                  <div className="flex justify-between text-[11px] text-[#6b9774] mt-1 font-mono">
+                    <span>3 words</span>
+                    <span>4 (Recommended)</span>
+                    <span>8 words</span>
+                  </div>
                 </div>
 
                 <div>
@@ -622,7 +700,7 @@ export default function PasswordGenerator() {
             {mode === "random" && (
               <>
                 <div className="text-xs font-bold text-[#080f0f] uppercase tracking-wider mb-2">
-                  Character Sets
+                  Character Sets (Real-time updates)
                 </div>
 
                 <label className="flex items-center justify-between p-3.5 rounded-2xl clay-well bg-white/70 cursor-pointer hover:bg-white transition-colors">
@@ -637,7 +715,7 @@ export default function PasswordGenerator() {
                       Uppercase Letters (A-Z)
                     </span>
                   </div>
-                  <span className="text-xs font-mono text-[#6b9774]">ABC</span>
+                  <span className="text-xs font-mono text-[#6b9774]">ABC (+26)</span>
                 </label>
 
                 <label className="flex items-center justify-between p-3.5 rounded-2xl clay-well bg-white/70 cursor-pointer hover:bg-white transition-colors">
@@ -652,7 +730,7 @@ export default function PasswordGenerator() {
                       Lowercase Letters (a-z)
                     </span>
                   </div>
-                  <span className="text-xs font-mono text-[#6b9774]">abc</span>
+                  <span className="text-xs font-mono text-[#6b9774]">abc (+26)</span>
                 </label>
 
                 <label className="flex items-center justify-between p-3.5 rounded-2xl clay-well bg-white/70 cursor-pointer hover:bg-white transition-colors">
@@ -667,7 +745,7 @@ export default function PasswordGenerator() {
                       Numbers (0-9)
                     </span>
                   </div>
-                  <span className="text-xs font-mono text-[#6b9774]">123</span>
+                  <span className="text-xs font-mono text-[#6b9774]">123 (+10)</span>
                 </label>
 
                 <label className="flex items-center justify-between p-3.5 rounded-2xl clay-well bg-white/70 cursor-pointer hover:bg-white transition-colors">
@@ -682,7 +760,7 @@ export default function PasswordGenerator() {
                       Special Symbols
                     </span>
                   </div>
-                  <span className="text-xs font-mono text-[#6b9774]">!@#$%^&*</span>
+                  <span className="text-xs font-mono text-[#6b9774]">!@#$%^&* (+33)</span>
                 </label>
 
                 <label className="flex items-center justify-between p-3.5 rounded-2xl clay-well bg-white/70 cursor-pointer hover:bg-white transition-colors">
@@ -739,7 +817,7 @@ export default function PasswordGenerator() {
                       Include Random Number
                     </span>
                   </div>
-                  <span className="text-xs font-mono text-[#6b9774]">42</span>
+                  <span className="text-xs font-mono text-[#6b9774]">+10-99</span>
                 </label>
               </>
             )}
@@ -753,10 +831,44 @@ export default function PasswordGenerator() {
               </div>
             )}
 
+            {/* In-Controls Live Strength Feedback Widget */}
+            <div className="p-4 rounded-2xl clay-well bg-white/80 space-y-2 border border-[#86ba90]/25">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-bold text-[#080f0f] flex items-center gap-1.5">
+                  <Shield className="w-3.5 h-3.5 text-[#86ba90]" />
+                  <span>Real-Time Configuration Strength:</span>
+                </span>
+                <span
+                  className="px-2 py-0.5 rounded-full font-bold text-white text-[10px]"
+                  style={{ backgroundColor: metrics.color }}
+                >
+                  {metrics.strengthLabel} ({metrics.bits} bits)
+                </span>
+              </div>
+
+              {/* 5-segment live mini indicator */}
+              <div className="grid grid-cols-5 gap-1">
+                {[1, 2, 3, 4, 5].map((lvl) => (
+                  <div
+                    key={lvl}
+                    className="h-1.5 rounded-full transition-all duration-300"
+                    style={{
+                      backgroundColor: metrics.tier >= lvl ? metrics.color : "rgba(134, 186, 144, 0.2)",
+                    }}
+                  />
+                ))}
+              </div>
+
+              <div className="flex justify-between items-center text-[10px] text-[#6b9774] pt-0.5">
+                <span>Brute-force crack time:</span>
+                <strong className="text-[#080f0f] font-mono">{metrics.crackTime}</strong>
+              </div>
+            </div>
+
             {/* Quick Action Generate Button */}
             <button
               type="button"
-              onClick={generatePassword}
+              onClick={() => generatePassword(true)}
               className="w-full py-3.5 px-6 rounded-2xl clay-btn text-white font-bold text-sm flex items-center justify-center gap-2 mt-4"
             >
               <RotateCw className="w-4 h-4" />
