@@ -178,15 +178,21 @@ The app will continue to generate cryptographically bulletproof passwords with f
   },
 ];
 
-// Helper functions for easy Sanity integration swap
+import { getStoredPosts, getStoredPostBySlug } from "./blog-store";
+
+// Helper functions for easy Sanity integration swap or local store
 export async function getAllBlogPosts(): Promise<BlogPost[]> {
-  // When integrating Sanity CMS, replace this array with:
-  // return await sanityClient.fetch(groq`*[_type == "post"]{ ... }`);
-  return PRESET_BLOG_POSTS;
+  try {
+    return await getStoredPosts();
+  } catch {
+    return PRESET_BLOG_POSTS;
+  }
 }
 
 export async function getBlogPostBySlug(slug: string): Promise<BlogPost | undefined> {
-  // When integrating Sanity CMS, replace with:
-  // return await sanityClient.fetch(groq`*[_type == "post" && slug.current == $slug][0]`, { slug });
-  return PRESET_BLOG_POSTS.find((p) => p.slug === slug);
+  try {
+    return await getStoredPostBySlug(slug);
+  } catch {
+    return PRESET_BLOG_POSTS.find((p) => p.slug === slug);
+  }
 }

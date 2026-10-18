@@ -23,6 +23,10 @@ const nextConfig = {
       },
     ];
   },
+  env: {
+    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || "leastpass-super-secure-jwt-secret-key-2026-auth",
+    NEXTAUTH_URL: process.env.NEXTAUTH_URL || "http://localhost:3000",
+  },
 };
 
 export default nextConfig;

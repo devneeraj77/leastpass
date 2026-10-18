@@ -104,15 +104,21 @@ export default async function BlogPostPage({ params }: Props) {
 
       {/* Main Content Body */}
       <div className="clay-card p-6 md:p-10 mb-10 text-[#080f0f] leading-relaxed space-y-6 text-sm sm:text-base">
-        {post.content.trim().split("\n\n").map((block, idx) => {
-          const trimmed = block.trim();
-          if (trimmed.startsWith("### ")) {
-            return (
-              <h2 key={idx} className="text-xl sm:text-2xl font-bold text-[#080f0f] pt-4 first:pt-0">
-                {trimmed.replace("### ", "")}
-              </h2>
-            );
-          }
+        {post.content.trim().startsWith("<") ? (
+          <div
+            className="prose prose-sm sm:prose-base max-w-none text-[#080f0f] leading-relaxed space-y-4 font-normal"
+            dangerouslySetInnerHTML={{ __html: post.content }}
+          />
+        ) : (
+          post.content.trim().split("\n\n").map((block, idx) => {
+            const trimmed = block.trim();
+            if (trimmed.startsWith("### ")) {
+              return (
+                <h2 key={idx} className="text-xl sm:text-2xl font-bold text-[#080f0f] pt-4 first:pt-0">
+                  {trimmed.replace("### ", "")}
+                </h2>
+              );
+            }
           if (trimmed.startsWith("#### ")) {
             return (
               <h3 key={idx} className="text-lg font-bold text-[#3b5240] pt-2">
@@ -162,12 +168,13 @@ export default async function BlogPostPage({ params }: Props) {
               </ul>
             );
           }
-          return (
-            <p key={idx} className="text-[#3b5240] leading-relaxed">
-              {trimmed}
-            </p>
-          );
-        })}
+            return (
+              <p key={idx} className="text-[#3b5240] leading-relaxed">
+                {trimmed}
+              </p>
+            );
+          })
+        )}
 
         {/* Tags */}
         <div className="pt-6 border-t border-[#86ba90]/25 flex flex-wrap gap-2 items-center">

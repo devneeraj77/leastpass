@@ -1,10 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import "./globals.css";
-import Header from "@/components/Header";
 import { Inter } from "next/font/google";
-import { Toaster } from "@/components/ui/toaster";
-import Footer from "@/components/Footer";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -207,12 +204,9 @@ export default function RootLayout({
         )}
       </head>
       <body
-        className={`${inter.className} text-[#080f0f] bg-[#fffcff] antialiased min-h-screen flex flex-col justify-between`}
+        className={`${inter.className} text-[#080f0f] bg-[#fffcff] antialiased min-h-screen`}
       >
-        <Header />
-        <main className="flex-1">{children}</main>
-        <Toaster />
-        <Footer />
+        {children}
       </body>
     </html>
   );

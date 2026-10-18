@@ -1,0 +1,50 @@
+[
+  {
+    "slug": "password-entropy-math",
+    "title": "The Mathematics of Password Entropy: Why 16 Characters Beat Complex 8-Character Passwords",
+    "subtitle": "Understanding why length trumps symbol complexity in the era of modern GPU cracking clusters.",
+    "date": "October 12, 2026",
+    "readTime": "6 min read",
+    "category": "Cryptography & Math",
+    "author": {
+      "name": "Neeraj Rekwar",
+      "role": "Creator of LeastPass",
+      "avatar": "NR"
+    },
+    "excerpt": "Explore Claude Shannon's information theory and discover why a 16-character lowercase passphrase offers vastly superior security compared to a convoluted 8-character password.",
+    "tags": ["Entropy", "Security", "Brute Force", "Cryptography"],
+    "content": "<h3>The Myth of the \"Complex\" 8-Character Password</h3><p>For decades, IT administrators and website registration forms enforced a rigid set of password complexity rules: at least 8 characters, one uppercase letter, one number, and one punctuation mark.</p><p>This led millions of users to create predictable patterns such as <code>P@ssword1!</code> or <code>Summer2026!</code>. To a human, these look convoluted and painful to type. To a specialized GPU hash-cracking cluster, they take less than <strong>400 milliseconds</strong> to penetrate using dictionary-based mask attacks.</p><h3>Shannon Information Entropy Explained</h3><p>In 1948, mathematician and cryptographer Claude Shannon introduced the concept of <strong>information entropy</strong>, defined mathematically as:</p><blockquote><p><strong>E = L × log₂(N)</strong></p></blockquote><p>Where:</p><ul><li><strong>E</strong> is the information entropy measured in bits.</li><li><strong>L</strong> is the length of the string in characters.</li><li><strong>N</strong> is the cardinality (size) of the pool of available symbols.</li></ul><p>Let us compare two practical scenarios:</p><h4>Scenario A: The Convoluted 8-Character Password</h4><p>Suppose a user picks 8 characters from a pool of 95 ASCII symbols (lowercase, uppercase, digits, symbols): E = 8 × log₂(95) ≈ 52.56 bits.</p><h4>Scenario B: The Clean 16-Character Password</h4><p>Suppose a user picks 16 characters using only lowercase letters and numbers: E = 16 × log₂(36) ≈ 82.72 bits.</p><h3>The Exponential Reality of Bits</h3><p>Because bits represent powers of 2, the difference between 52 bits and 82 bits is not linear—it is <strong>2³⁰ times harder</strong>, which translates to <strong>over 1 billion times more computational resistance</strong>.</p><h3>What LeastPass Does Differently</h3><p>LeastPass enforces default generation of 16+ characters and calculates true Shannon entropy directly inside your browser window. By combining length with hardware-backed random sampling, you produce secrets that no GPU cluster can brute-force in our lifetime.</p>"
+  },
+  {
+    "slug": "diceware-passphrase-guide",
+    "title": "Diceware and Passphrases: How to Create Passwords You Can Actually Remember",
+    "subtitle": "A practical guide to multi-word passphrases that provide bank-grade entropy without keyboard frustration.",
+    "date": "October 8, 2026",
+    "readTime": "5 min read",
+    "category": "Usability & Security",
+    "author": {
+      "name": "Neeraj Rekwar",
+      "role": "Creator of LeastPass",
+      "avatar": "NR"
+    },
+    "excerpt": "Inspired by Arnold Reinhold's Diceware method and the XKCD classic, learn why combining 4 to 5 dictionary words creates memorable, impenetrable master credentials.",
+    "tags": ["Passphrases", "Diceware", "Human Factors", "Authentication"],
+    "content": "<h3>The Human Bottleneck in Cyber Hygiene</h3><p>Traditional passwords suffer from a fatal flaw: humans cannot easily memorize 32-character random character strings like <code>#8z&amp;Q$1mP@k9</code>. Consequently, people either write them down on sticky notes, reuse them across multiple services, or reset them every month.</p><p>The solution was pioneered by Arnold Reinhold in 1995: <strong>The Diceware Method</strong>.</p><h3>How Diceware Works</h3><p>Diceware uses physical dice to generate random numbers corresponding to a wordlist of 7,776 English words. Because each word represents <strong>~12.9 bits of entropy</strong> (log₂(7,776) ≈ 12.92), combining just 5 words yields:</p><blockquote><p><strong>5 × 12.92 = 64.6 bits of pure, unguessable entropy</strong></p></blockquote><p>A master passphrase like <code>velvet-falcon-radiant-island-cosmos</code> is effortlessly typed on touchscreens and easily memorized, yet virtually uncrackable by offline dictionary attacks.</p>"
+  },
+  {
+    "slug": "client-side-csprng-security",
+    "title": "Why Math.random() is Insecure: The Cryptographic Anatomy of Browser CSPRNG",
+    "subtitle": "A deep dive into why developers must never use pseudo-random generators for security-critical secrets.",
+    "date": "October 4, 2026",
+    "readTime": "7 min read",
+    "category": "Web Cryptography",
+    "author": {
+      "name": "Neeraj Rekwar",
+      "role": "Creator of LeastPass",
+      "avatar": "NR"
+    },
+    "excerpt": "Learn the hidden vulnerabilities of JavaScript's Math.random() and how LeastPass utilizes window.crypto.getRandomValues() for hardware-backed security.",
+    "tags": ["Web Crypto", "CSPRNG", "JavaScript", "Security Architecture"],
+    "content": "<h3>The Silent Danger in Web Security</h3><p>Many online password generators and authentication tutorials commit a critical error: generating secrets using JavaScript's <code>Math.random()</code>.</p><p><code>Math.random()</code> is implemented via algorithms like <strong>xorshift128+</strong>. It is a <strong>Pseudo-Random Number Generator (PRNG)</strong> designed for speed and graphics simulations, not security. If an attacker observes a few outputs, they can reconstruct the internal seed state and predict every subsequent password.</p><h3>The Web Cryptography API: CSPRNG</h3><p>To build truly secure tools, web developers must use <strong>Cryptographically Secure Pseudo-Random Number Generators (CSPRNG)</strong> backed by OS hardware entropy:</p><blockquote><p><code>window.crypto.getRandomValues(array)</code></p></blockquote><p>The <code>window.crypto.getRandomValues()</code> method draws from environmental hardware entropy (keyboard timings, disk interrupts, thermal noise) and meets rigorous <strong>FIPS 140-2</strong> cryptographic standards.</p><h3>The Zero-Knowledge Guarantee of LeastPass</h3><p>LeastPass is designed with zero server endpoints for credential generation. The app will continue to generate cryptographically bulletproof passwords with full entropy calculation completely offline. Nothing ever leaves your device.</p>"
+  }
+]

@@ -55,6 +55,9 @@ export default function Footer() {
           >
             Sitemap
           </a>
+          <Link href="/admin" className="hover:text-[#080f0f] transition-colors">
+            Admin
+          </Link>
         </div>
 
         {/* Right: Developer Attribution & Socials */}

@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { QRCodeCanvas } from "qrcode.react";
 import { useToast } from "@/hooks/use-toast";
+import { trackPasswordGeneration, trackCopyToClipboard } from "@/lib/analytics";
 
 // Word pool for memorable passphrases
 const PASSPHRASE_WORDS = [
@@ -280,6 +281,9 @@ export default function PasswordGenerator() {
       }
 
       setGeneratedPassword(result);
+      if (result) {
+        trackPasswordGeneration(mode, result.length, calculateEntropy(result).bits);
+      }
 
       if (recordHistory) {
         setSpinCount((prev) => prev + 1);
@@ -350,6 +354,7 @@ export default function PasswordGenerator() {
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text).then(() => {
         setIsCopied(true);
+        trackCopyToClipboard(mode, metrics.bits);
         toast({
           title: "Password copied to clipboard!",
           description: "Ready to paste securely into your app or vault.",
