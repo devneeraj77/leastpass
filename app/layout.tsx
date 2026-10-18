@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import "./globals.css";
 import Header from "@/components/Header";
 import { Inter } from "next/font/google";
@@ -14,6 +15,10 @@ const inter = Inter({
 const siteUrl =
   process.env.NEXT_PUBLIC_APP_URL ||
   "https://leastpass.vercel.app";
+
+const gaId =
+  process.env.NEXT_PUBLIC_GA_ID ||
+  "G-YYWWSXPPKN";
 
 export const viewport: Viewport = {
   themeColor: "#86ba90",
@@ -85,6 +90,9 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: "/favicon.ico",
+  },
+  verification: {
+    google: "google4859c180d3ad54a0.html",
   },
 };
 
@@ -179,6 +187,24 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+        {gaId && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
+              strategy="afterInteractive"
+            />
+            <Script id="google-analytics" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${gaId}', {
+                  page_path: window.location.pathname,
+                });
+              `}
+            </Script>
+          </>
+        )}
       </head>
       <body
         className={`${inter.className} text-[#080f0f] bg-[#fffcff] antialiased min-h-screen flex flex-col justify-between`}
