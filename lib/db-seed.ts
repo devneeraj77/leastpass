@@ -31,9 +31,26 @@ export async function runDatabaseSeed(): Promise<SeedResult> {
   try {
     const dataDir = path.join(process.cwd(), "data");
     const dataFile = path.join(dataDir, "blog-posts.json");
+    const usersFile = path.join(dataDir, "users.json");
     await fs.mkdir(dataDir, { recursive: true });
     await fs.writeFile(dataFile, JSON.stringify(PRESET_BLOG_POSTS, null, 2), "utf8");
-    details.push("Local file cache (data/blog-posts.json) updated with 3 preset articles.");
+
+    let existingUsers: typeof DEFAULT_ADMIN_USER[] = [];
+    try {
+      const existingRaw = await fs.readFile(usersFile, "utf8");
+      existingUsers = JSON.parse(existingRaw);
+    } catch {
+      existingUsers = [];
+    }
+    const idx = existingUsers.findIndex((u) => u.username === DEFAULT_ADMIN_USER.username);
+    if (idx >= 0) {
+      existingUsers[idx] = { ...existingUsers[idx], ...DEFAULT_ADMIN_USER };
+    } else {
+      existingUsers.push(DEFAULT_ADMIN_USER);
+    }
+    await fs.writeFile(usersFile, JSON.stringify(existingUsers, null, 2), "utf8");
+
+    details.push("Local file cache (data/blog-posts.json & data/users.json) synchronized.");
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     details.push(`Local file write warning: ${msg}`);

@@ -1,0 +1,22 @@
+[
+  {
+    "username": "admin",
+    "email": "admin@leastpass.com",
+    "password": "leastpass2026!",
+    "name": "Neeraj Rekwar",
+    "role": "administrator",
+    "avatar": "NR",
+    "updatedAt": "2026-10-18T20:37:44.819Z",
+    "createdAt": "2026-10-18T20:37:44.820Z"
+  },
+  {
+    "username": "devneeraj",
+    "email": "neeraj@leastpass.com",
+    "password": "MyS3cur3Pass!",
+    "name": "Neeraj Rekwar",
+    "role": "administrator",
+    "avatar": "NR",
+    "createdAt": "2026-10-18T20:41:22.279Z",
+    "updatedAt": "2026-10-18T20:41:22.280Z"
+  }
+]

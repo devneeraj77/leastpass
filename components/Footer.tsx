@@ -25,7 +25,7 @@ export default function Footer() {
         </div>
 
         {/* Center: Internal Site Navigation */}
-        <div className="flex flex-wrap items-center justify-center gap-6 text-xs font-semibold text-[#3b5240]">
+        <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs font-semibold text-[#3b5240]">
           <Link href="/" className="hover:text-[#080f0f] transition-colors">
             Generator
           </Link>
@@ -34,6 +34,15 @@ export default function Footer() {
           </Link>
           <Link href="/blog" className="hover:text-[#080f0f] transition-colors">
             Blog & Guides
+          </Link>
+          <Link href="/security" className="hover:text-[#080f0f] transition-colors">
+            Security
+          </Link>
+          <Link href="/privacy" className="hover:text-[#080f0f] transition-colors">
+            Privacy Policy
+          </Link>
+          <Link href="/terms" className="hover:text-[#080f0f] transition-colors">
+            Terms
           </Link>
           <Link href="/contact" className="hover:text-[#080f0f] transition-colors">
             Contact

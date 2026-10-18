@@ -6,6 +6,7 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, "..");
+const dataDir = path.join(rootDir, "data");
 
 // Try loading environment variables from .env.local or .env if present
 function loadEnv() {
@@ -43,9 +44,13 @@ function getCleanDbName() {
 const dbName = getCleanDbName();
 const adminUser = process.env.ADMIN_USER || "admin";
 const adminPass = process.env.ADMIN_PASSWORD || "leastpass2026!";
+const adminEmail = "admin@leastpass.com";
+const adminName = "Neeraj Rekwar";
 
 // Read preset blog posts from data/blog-posts.json
-const dataJsonPath = path.join(rootDir, "data", "blog-posts.json");
+const dataJsonPath = path.join(dataDir, "blog-posts.json");
+const usersJsonPath = path.join(dataDir, "users.json");
+
 let presetPosts = [];
 if (fs.existsSync(dataJsonPath)) {
   try {
@@ -60,18 +65,58 @@ console.log("🔒 LeastPass Direct Database Seed Tool");
 console.log("=======================================================\n");
 
 async function main() {
-  if (!uri) {
-    console.warn("⚠️  MONGODB_URI environment variable is not set.");
-    console.log("ℹ️  Seeding local fallback file at data/blog-posts.json...");
-    if (presetPosts.length > 0) {
-      console.log(`✅ Local store verified with ${presetPosts.length} publications.`);
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+  }
+
+  // 1. Always seed local fallback users and posts
+  const adminDoc = {
+    username: adminUser,
+    email: adminEmail,
+    password: adminPass,
+    name: adminName,
+    role: "administrator",
+    avatar: "NR",
+    updatedAt: new Date().toISOString(),
+  };
+
+  let localUsers = [];
+  if (fs.existsSync(usersJsonPath)) {
+    try {
+      localUsers = JSON.parse(fs.readFileSync(usersJsonPath, "utf8"));
+    } catch {
+      localUsers = [];
     }
-    console.log("\n👉 To seed directly into MongoDB, specify MONGODB_URI:");
+  }
+
+  const existingIdx = localUsers.findIndex((u) => u.username === adminUser);
+  if (existingIdx >= 0) {
+    localUsers[existingIdx] = { ...localUsers[existingIdx], ...adminDoc };
+  } else {
+    localUsers.push({ ...adminDoc, createdAt: new Date().toISOString() });
+  }
+  fs.writeFileSync(usersJsonPath, JSON.stringify(localUsers, null, 2), "utf8");
+  console.log(`✅ Seeded administrator account into local storage (${usersJsonPath}).`);
+
+  if (!uri) {
+    console.warn("\n⚠️  MONGODB_URI environment variable is not set.");
+    console.log("ℹ️  Running in Local Storage Mode.");
+    if (presetPosts.length > 0) {
+      console.log(`✅ Local publications store verified with ${presetPosts.length} articles.`);
+    }
+    console.log("\n=======================================================");
+    console.log("🎉 Local Seed Completed Successfully!");
+    console.log("=======================================================");
+    console.log(`👤 Admin Username: ${adminUser}`);
+    console.log(`🔐 Admin Password: ${adminPass}`);
+    console.log(`📧 Admin Email:    ${adminEmail}`);
+    console.log("🌐 Admin Portal:   http://localhost:3000/admin/login");
+    console.log("\n👉 Tip: To seed directly into MongoDB Atlas, configure MONGODB_URI:");
     console.log("   MONGODB_URI=\"mongodb+srv://...\" node scripts/seed.mjs\n");
     process.exit(0);
   }
 
-  console.log(`📡 Connecting to MongoDB Database: "${dbName}"...`);
+  console.log(`\n📡 Connecting to MongoDB Database: "${dbName}"...`);
   const client = new MongoClient(uri);
 
   try {
@@ -86,20 +131,13 @@ async function main() {
     await usersCol.createIndex({ username: 1 }, { unique: true });
     await usersCol.createIndex({ email: 1 }, { unique: true });
 
-    const adminDoc = {
-      username: adminUser,
-      email: "admin@leastpass.com",
-      password: adminPass,
-      name: "Neeraj Rekwar",
-      role: "administrator",
-      avatar: "NR",
-      updatedAt: new Date(),
-    };
-
     const userRes = await usersCol.updateOne(
       { username: adminUser },
       {
-        $set: adminDoc,
+        $set: {
+          ...adminDoc,
+          updatedAt: new Date(),
+        },
         $setOnInsert: { createdAt: new Date() },
       },
       { upsert: true }
@@ -141,7 +179,7 @@ async function main() {
         $set: {
           key: "system_metadata",
           appName: "LeastPass",
-          developer: "Neeraj Rekwar",
+          developer: adminName,
           lastSeededAt: new Date(),
           version: "1.0.0",
         },
@@ -154,8 +192,9 @@ async function main() {
     console.log("🎉 Direct Database Seeding Completed Successfully!");
     console.log("=======================================================");
     console.log(`📊 Total Articles Seeded: ${postCount}`);
-    console.log(`🔑 Admin Login Username:  ${adminUser} (or admin@leastpass.com)`);
-    console.log(`🔐 Admin Login Password:  ${adminPass}`);
+    console.log(`👤 Admin Username:        ${adminUser}`);
+    console.log(`🔐 Admin Password:        ${adminPass}`);
+    console.log(`📧 Admin Email:           ${adminEmail}`);
     console.log("🌐 Admin Login Portal:    http://localhost:3000/admin/login");
     console.log("=======================================================\n");
   } catch (error) {

@@ -12,7 +12,6 @@ import {
   EyeOff,
   ArrowRight,
   AlertCircle,
-  KeyRound,
   CheckCircle2,
 } from "lucide-react";
 
@@ -23,8 +22,8 @@ function LoginForm() {
 
   const { status } = useSession();
 
-  const [username, setUsername] = useState<string>("admin");
-  const [password, setPassword] = useState<string>("leastpass2026!");
+  const [username, setUsername] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
@@ -62,12 +61,6 @@ function LoginForm() {
     }
   };
 
-  const autofillDemo = () => {
-    setUsername("admin");
-    setPassword("leastpass2026!");
-    setErrorMessage("");
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-[#f8fbf9] to-[#edf5ef]">
       <div className="w-full max-w-md">
@@ -92,29 +85,8 @@ function LoginForm() {
               Admin Portal
             </h1>
             <p className="text-xs text-[#6b9774] mt-1">
-              Sign in with your administrator credentials to manage blog publications and settings.
+              Sign in with your administrator credentials to manage publications and settings.
             </p>
-          </div>
-
-          {/* Quick Demo Credentials Info Capsule */}
-          <div className="p-3.5 mb-5 rounded-2xl clay-well bg-[#edf5ef] border border-[#86ba90]/30 text-xs text-[#3b5240] space-y-1.5">
-            <div className="flex items-center justify-between">
-              <span className="font-bold text-[#080f0f] flex items-center gap-1.5">
-                <KeyRound className="w-3.5 h-3.5 text-[#86ba90]" />
-                <span>Default Credentials:</span>
-              </span>
-              <button
-                type="button"
-                onClick={autofillDemo}
-                className="text-[11px] font-bold text-[#86ba90] hover:text-[#547e5d] underline"
-              >
-                Auto-fill
-              </button>
-            </div>
-            <div className="font-mono text-[11px] grid grid-cols-2 gap-1 text-[#080f0f]">
-              <div>User: <strong>admin</strong></div>
-              <div>Pass: <strong>leastpass2026!</strong></div>
-            </div>
           </div>
 
           {/* Error Alert */}
@@ -139,9 +111,10 @@ function LoginForm() {
                 <input
                   type="text"
                   required
+                  autoComplete="username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="admin or admin@leastpass.com"
+                  placeholder="Enter administrator username or email"
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl clay-well bg-white text-sm font-medium text-[#080f0f] border border-[#86ba90]/30 focus:outline-none focus:ring-2 focus:ring-[#86ba90]"
                 />
               </div>
@@ -159,9 +132,10 @@ function LoginForm() {
                 <input
                   type={showPassword ? "text" : "password"}
                   required
+                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••••••"
+                  placeholder="Enter your password"
                   className="w-full pl-10 pr-10 py-2.5 rounded-xl clay-well bg-white text-sm font-medium text-[#080f0f] border border-[#86ba90]/30 focus:outline-none focus:ring-2 focus:ring-[#86ba90]"
                 />
                 <button

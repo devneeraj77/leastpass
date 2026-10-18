@@ -21,16 +21,25 @@ export function trackGAEvent(
   action: string,
   params: Record<string, unknown> = {}
 ): void {
-  if (typeof window === "undefined" || !window.gtag) {
+  if (typeof window === "undefined") {
     return;
   }
 
   try {
-    window.gtag("event", action, {
-      ...params,
-      send_to: GA_TRACKING_ID,
-      timestamp: new Date().toISOString(),
-    });
+    if (typeof window.gtag === "function") {
+      window.gtag("event", action, {
+        ...params,
+        send_to: GA_TRACKING_ID,
+        timestamp: new Date().toISOString(),
+      });
+    } else if (Array.isArray(window.dataLayer)) {
+      window.dataLayer.push({
+        event: action,
+        ...params,
+        send_to: GA_TRACKING_ID,
+        timestamp: new Date().toISOString(),
+      });
+    }
   } catch (err) {
     console.debug("GA Event error:", err);
   }

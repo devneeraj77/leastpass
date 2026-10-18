@@ -49,10 +49,39 @@ export const authOptions: NextAuthOptions = {
             }
           }
         } catch (dbErr) {
-          console.warn("MongoDB user auth check error, falling back to env credentials:", dbErr);
+          console.warn("MongoDB user auth check error, falling back to local/env:", dbErr);
         }
 
-        // 2. Fallback to env / default administrator credentials
+        // 2. Check local users store (data/users.json)
+        try {
+          const fs = await import("fs/promises");
+          const path = await import("path");
+          const usersFilePath = path.join(process.cwd(), "data", "users.json");
+          const fileExists = await fs.access(usersFilePath).then(() => true).catch(() => false);
+          if (fileExists) {
+            const fileData = await fs.readFile(usersFilePath, "utf8");
+            const localUsers = JSON.parse(fileData);
+            if (Array.isArray(localUsers)) {
+              const matched = localUsers.find(
+                (u: { username?: string; email?: string; password?: string; name?: string; role?: string }) =>
+                  (u.username === inputUser || u.email?.toLowerCase() === inputUser.toLowerCase()) &&
+                  u.password === inputPass
+              );
+              if (matched) {
+                return {
+                  id: matched.username,
+                  name: matched.name || "Administrator",
+                  email: matched.email || `${matched.username}@leastpass.com`,
+                  role: matched.role || "administrator",
+                };
+              }
+            }
+          }
+        } catch {
+          // Proceed to env fallback
+        }
+
+        // 3. Fallback to env / default administrator credentials
         const validUsername = process.env.ADMIN_USER || "admin";
         const validPassword = process.env.ADMIN_PASSWORD || "leastpass2026!";
 
