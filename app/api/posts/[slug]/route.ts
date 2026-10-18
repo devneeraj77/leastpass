@@ -5,14 +5,15 @@ import { getStoredPostBySlug, saveStoredPost, deleteStoredPost } from "@/lib/blo
 import { BlogPost } from "@/lib/blog-data";
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 export async function GET(req: NextRequest, { params }: RouteParams) {
   try {
-    const post = await getStoredPostBySlug(params.slug);
+    const { slug } = await params;
+    const post = await getStoredPostBySlug(slug);
     if (!post) {
       return NextResponse.json({ error: "Post not found" }, { status: 404 });
     }
@@ -30,7 +31,8 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Unauthorized. Please sign in." }, { status: 401 });
     }
 
-    const existingPost = await getStoredPostBySlug(params.slug);
+    const { slug } = await params;
+    const existingPost = await getStoredPostBySlug(slug);
     if (!existingPost) {
       return NextResponse.json({ error: "Post not found" }, { status: 404 });
     }
@@ -73,7 +75,8 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Unauthorized. Please sign in." }, { status: 401 });
     }
 
-    const deleted = await deleteStoredPost(params.slug);
+    const { slug } = await params;
+    const deleted = await deleteStoredPost(slug);
     if (!deleted) {
       return NextResponse.json({ error: "Post not found or could not be deleted" }, { status: 404 });
     }
